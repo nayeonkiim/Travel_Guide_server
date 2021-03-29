@@ -14,10 +14,10 @@ router.get('/join/:userId', async (req, res, next) => {
 
     try {
         const user = await User.findOne({ where: { userId } });
-        let approve = { 'approve': 'fail' };
+        let approve = { 'approve': 'fail_idChk' };
         //해당 아이디 없는 경우 ok 전송
         if (!user) {
-            approve.approve = 'ok';
+            approve.approve = 'ok_idChk';
             res.json(approve);
         }
         //해당 아이디 이미 있는 경우 fail 전송
@@ -44,7 +44,7 @@ router.post('/join', async (req, res, next) => {
     const role = req.body.role;
 
     try {
-        let approve = { 'approve': 'ok' };
+        let approve = { 'approve': 'ok_signUp' };
         //비밀번호 암호화
         const hash = await bcrypt.hash(password, 12);
         //트랜잭션 안에서 실행
@@ -125,12 +125,12 @@ router.post('/findId', async (req, res) => {
             }
         });
 
-        let findId = { "userId": "fail" };
+        let approve = { 'approve': 'fail', 'userId': 'fail' };
         if (user) {
-            findId.userId = user.userId;
-            res.status(200).json(findId);
+            approve.userId = user.userId;
+            approve.approve = 'ok_findId';
+            res.status(200).json(approve);
         } else {
-            let approve = { 'approve': 'fail' };
             res.status(400).json(approve);
         }
     } catch (err) {
@@ -178,7 +178,7 @@ router.post('/findPw', async (req, res) => {
                         where: { userId: user.userId }
                     }, { transaction: t });
             });
-            approve.approve = 'ok';
+            approve.approve = 'ok_findPwd';
             res.status(200).json(approve);
         } else {
             res.status(400).json(approve);

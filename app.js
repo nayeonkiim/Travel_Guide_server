@@ -1,5 +1,4 @@
 const express = require('express');
-const app = express();
 const path = require('path');
 const dotenv = require('dotenv');
 const nunjucks = require('nunjucks');
@@ -15,14 +14,16 @@ const passportConfig = require('./passport/index');
 const { sequelize } = require('./models');  //models/index.js
 const groupRouter = require('./routes/group');
 
+const app = express();
+
 passportConfig(); //패스포트 설정
-app.set('port', process.env.PORT || 8000);  //8001 포트로 설정 
-app.set('view engine', 'html');
-//views 템플릿으로 nunjucks 사용
-nunjucks.configure('views', {
-    express: app,
-    watch: true,
-});
+app.set('port', process.env.PORT || 3001);  //8001 포트로 설정 
+// app.set('view engine', 'html');
+// //views 템플릿으로 nunjucks 사용
+// nunjucks.configure('views', {
+//     express: app,
+//     watch: true,
+// });
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
@@ -49,13 +50,14 @@ sequelize.sync({ force: false })
         console.error(err);
     });
 
+
 app.use('/', indexRouter);
 app.use('/auth', authRouter);
 app.use('/group', groupRouter);
 
 //요청을 수신할 때마다 실행
-app.use((req, res, next) => {
-    console.log('수신이 되었습니다.!!!!');
+app.use(function (req, res, next) {
+    console.log('수신되었습니다.');
     const error = new Error(`${req.method} ${req.url} 라우터가 없습니다.`);
     error.status = 404;
     next(error);
@@ -66,9 +68,11 @@ app.use((err, req, res, next) => {
     res.locals.message = err.message;
     res.locals.error = process.env.NODE_ENV !== 'product' ? err : {};
     const approve = { "error": err.message };
-    res.status(err.status || 500).json(approve);
-})
+    res.status(err.status || 500).send(approve);
+});
 
-var server = http.createServer(app).listen(app.get('port'), function () {
-    console.log("익스프레스 웹 서버를 실행함 : " + app.get('port'));
-})
+app.listen(3001, function () {
+    console.log("Express server has started on port 80");
+});
+
+module.exports = app;

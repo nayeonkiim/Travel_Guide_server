@@ -13,7 +13,7 @@ router.post('/', async (req, res, next) => {
     console.log(req.body);
     const manager = req.body.manager;
     const title = req.body.title;
-    let approve = { "approve": "fail" };
+    let approve = { 'approve': 'fail' };
     try {
         //그룹 이름 조회
         const groupName = await Group.findAll({
@@ -74,7 +74,7 @@ router.post('/', async (req, res, next) => {
                         next(err);
                     }
                 } else {
-                    approve.approve = '이미 존재하는 그룹명 입니다.';
+                    approve.approve = 'fail';
                     return res.status(409).json(approve);
                 }
             });
