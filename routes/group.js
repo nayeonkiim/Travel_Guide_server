@@ -4,6 +4,7 @@ const User = require('../models/user');
 const UserGroup = require('../models/userGroup');
 const router = express.Router();
 const { sequelize } = require('../models');
+const e = require('express');
 
 
 //그룹 생성
@@ -64,9 +65,9 @@ router.post('/', async (req, res, next) => {
                             next(err);
                         }
                         await t.commit();
-                        approve.approve = 'ok';
+                        approve.approve = 'ok_groupCreate';
                         //멤버 정상적으로 추가 완료
-                        return res.json(approve);
+                        res.json(approve);
                     } catch (err) {
                         //에러가 있는 경우 rollback
                         await t.rollback();
@@ -75,7 +76,7 @@ router.post('/', async (req, res, next) => {
                     }
                 } else {
                     approve.approve = 'fail';
-                    return res.status(409).json(approve);
+                    res.status(409).json(approve);
                 }
             });
 
@@ -85,9 +86,36 @@ router.post('/', async (req, res, next) => {
     }
 });
 
+router.get("/idCheck/:userId", async (req, res, next) => {
+    console.log('멤버 아이디 체크 라우터 호출됨');
+    const userIdparam = req.params.userId;
+
+    try {
+        //userId 에 해당하는 멤버 있는지 조회
+        const result = await User.findOne({ where: { userId: userIdparam } })
+            .then(result => {
+                let approve = { "approve": "fail_groupIdChk" };
+                if (result) {
+                    approve.approve = "ok_groupIdChk";
+                    //멤버 있는 경우
+                    res.status(200).json(approve);
+                } else {
+                    //멤버 없는 경우
+                    approve.approve = "fail_groupIdChk";
+                    //status(400) 으로 보내면 에러 메시지 안감
+                    //res.status(401).json(approve); 
+                    res.json(approve);
+                }
+            });
+    } catch (err) {
+        console.error(err);
+        next(err);
+    }
+});
 
 //가이드의 그룹 조회 
 router.get("/:userId", async (req, res, next) => {
+    console.log('가이드의 그룹 조회 라우터 호출됨');
     const userId = req.params.userId;
     //가이드 그룹 조회
     const result = await User.findOne({
@@ -126,6 +154,7 @@ router.get("/:userId", async (req, res, next) => {
 
 // 그룹 구성원 조회
 router.get("/member/:title", async (req, res, next) => {
+    console.log('그룹 구성원 조회 라우터 호출됨');
     const title = req.params.title;
 
     try {
@@ -134,18 +163,29 @@ router.get("/member/:title", async (req, res, next) => {
             where: { title }
         })
             .then(async (groupId) => {
-                if (!groupId) {
+                if (groupId) {
                     const users = await groupId.getUsers({
                         attributes: ['userId']
                     })
-                        .then(userId => {
-                            if (users.length > 0)
-                                return res.status(200).json(users);
+                        .then(users => {
+                            let approve = { "approve": "ok_mem_receive", "userMem": users }
+                            if (users.length > 0) {
+                                console.log('그룹 멤버 조회 성공');
+                                res.status(200).json(approve);
+                            } else {
+                                console.log('그룹 멤버 조회 실패');
+                                approve.approve = "fail_noGroupMember";
+                                approve.userMem = "noMember";
+                                res.status(500).json(approve);
+                            }
                         })
+                } else {
+                    console.log(groupId + ' is null');
                 }
             })
             .catch(err => {
                 const approve = { 'approve': '존재하지 않는 그룹명 입니다.' };
+                console.log(approve.approve);
                 return res.status(500).json(approve);
             })
     } catch (err) {
@@ -157,7 +197,7 @@ router.get("/member/:title", async (req, res, next) => {
 
 //공지사항 목록
 router.get("/notice/:title", async (req, res, next) => {
-    console.log('그룹 생성하기 라우터 호출됨');
+    console.log('공지사항 목록 라우터 호출됨');
     const groupTitle = req.params.title;
     try {
         const result = await Group.findOne({
