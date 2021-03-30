@@ -43,13 +43,14 @@ router.post('/join', async (req, res, next) => {
     const gender = req.body.gender;
     const role = req.body.role;
 
+    let approve = { 'approve': 'ok_signUp' };
     try {
-        let approve = { 'approve': 'ok_signUp' };
+
         //비밀번호 암호화
         const hash = await bcrypt.hash(password, 12);
         //트랜잭션 안에서 실행
         const result = await sequelize.transaction(async (t) => {
-            await User.create({
+            const signupa = await User.create({
                 userId,
                 password: hash,
                 name,
@@ -59,11 +60,12 @@ router.post('/join', async (req, res, next) => {
                 role
             }, { transaction: t });
         });
+        console.log(result);
         //회원가입이 완료되어 201 상태코드 전송
-        res.status(201).json(approve);
+        return res.status(200).json(approve);
     } catch (error) {
-        console.error(error);
-        next(error);
+        approve.approve = 'fail_signUp';
+        return res.status(500).json(approve);
     }
 });
 
@@ -80,7 +82,7 @@ router.post('/login', (req, res, next) => {
         //사용자 없는 경우 or 비밀번호 다른 경우
         if (!user) {
             console.log(info);
-            const approve = { 'approve': info.message };
+            let approve = { 'approve': info.message };
             return res.json(approve);
         }
         //사용자 존재하는 경우. 
@@ -96,7 +98,8 @@ router.post('/login', (req, res, next) => {
             });
 
             console.log(userInfo.dataValues);
-            const approve = { 'approve': 'ok_login', 'user': userInfo.dataValues };
+            let approve = { 'approve': 'ok_login', 'user': userInfo.dataValues };
+            console.log('여기 호출');
             //로그인 완료되어 user 정보 전송
             res.status(200).json(approve);
         });
@@ -125,6 +128,7 @@ router.post('/findId', async (req, res) => {
             }
         });
 
+        //console.log(user);
         let approve = { 'approve': 'fail', 'userId': 'fail' };
         if (user) {
             approve.userId = user.userId;

@@ -71,8 +71,8 @@ app.use((err, req, res, next) => {
     res.status(err.status || 500).send(approve);
 });
 
-app.listen(3001, function () {
-    console.log("Express server has started on port 80");
+app.listen(app.get('port'), function () {
+    console.log("Express server has started on port " + app.get('port'));
 });
 
 module.exports = app;
