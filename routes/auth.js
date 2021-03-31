@@ -2,7 +2,8 @@ const express = require('express');
 const passport = require('passport');
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
-const { sequelize, Token } = require('../models');
+const Token = require('../models/token');
+const { sequelize } = require('../models');
 const mailer = require('./mail');
 const router = express.Router();
 
@@ -107,6 +108,7 @@ router.post('/login', (req, res, next) => {
                 const saveToken = await Token.create({
                     token
                 }).then(async (saveToken) => {
+                    console.log("토큰 저장 완료");
                     const result = await saveToken.setUser(userInfo);
                     console.log("result: " + result);
                     if (result) {
