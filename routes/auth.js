@@ -2,7 +2,7 @@ const express = require('express');
 const passport = require('passport');
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
-const { sequelize } = require('../models');
+const { sequelize, Token } = require('../models');
 const mailer = require('./mail');
 const router = express.Router();
 
@@ -73,6 +73,7 @@ router.post('/join', async (req, res, next) => {
 router.post('/login', (req, res, next) => {
     console.log('로그인 라우터 호출 됨');
     console.log(req.body);
+    const token = req.body.token;
     passport.authenticate('local', (authError, user, info) => {
         //에러가 있는 경우
         if (authError) {
@@ -99,21 +100,62 @@ router.post('/login', (req, res, next) => {
 
             console.log(userInfo.dataValues);
             let approve = { 'approve': 'ok_login', 'user': userInfo.dataValues };
-            console.log('여기 호출');
-            //로그인 완료되어 user 정보 전송
-            res.status(200).json(approve);
+            console.log('ok_login');
+
+            //기기별 토큰 db에 저장
+            try {
+                const saveToken = await Token.create({
+                    token
+                }).then(async (saveToken) => {
+                    const result = await saveToken.setUser(userInfo);
+                    console.log("result: " + result);
+                    if (result) {
+                        //로그인 완료되어 user 정보 전송
+                        res.status(200).json(approve);
+                    } else {
+                        approve.approve = 'token 정보 저장 실패';
+                        res.status(500).json(approve);
+                    }
+                })
+            } catch (err) {
+                console.error(err);
+                next(err);
+            }
         });
     })(req, res, next);
 });
 
 //로그아웃 라우터. 로그인 되어 있을 때만 접근 가능.
-router.get('/logout', (req, res) => {
+router.get('/logout/:userId', async (req, res) => {
     console.log('로그아웃 라우터 호출 됨');
-    req.logout();
-    req.session.destroy();
+    const userId = req.params.userId;
+
     let approve = { 'approve': 'ok' };
-    //로그아웃 완료되어 200 상태코드 전송
-    res.status(200).json(approve);
+    //사용자 토큰 값 삭제
+    try {
+        const tokenId = await User.findOne({
+            where: { userId },
+        });
+        const getToken = await tokenId.getToken();
+        console.log(getToken.id);
+        await Token.destroy({
+            where: {
+                id: getToken.id
+            }
+        }).then(() => {
+            console.log("로그아웃 token 제거 정상 처리됨");
+            //로그아웃 완료되어 200 상태코드 전송
+            res.status(200).json(approve);
+        }).catch(err => {
+            approve.approve = "fail_tokenRemove";
+            console.log("로그아웃 token 제거 비정상적으로 종료됨");
+            res.status(500).json(approve);
+        });
+
+    } catch (err) {
+        console.error(err);
+        next(err);
+    }
 })
 
 router.post('/findId', async (req, res) => {
