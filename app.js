@@ -1,11 +1,10 @@
 const express = require('express');
 const path = require('path');
 const dotenv = require('dotenv');
-const nunjucks = require('nunjucks');
 const session = require('express-session');
 const passport = require('passport');
-const http = require('http');
-const bodyParser = require('body-parser');
+const admin = require('firebase-admin');
+
 
 dotenv.config();
 const indexRouter = require('./routes/index');
@@ -13,17 +12,12 @@ const authRouter = require('./routes/auth');
 const passportConfig = require('./passport/index');
 const { sequelize } = require('./models');  //models/index.js
 const groupRouter = require('./routes/group');
+const pushRouter = require('./routes/push');
 
 const app = express();
 
 passportConfig(); //패스포트 설정
 app.set('port', process.env.PORT || 3001);  //8001 포트로 설정 
-// app.set('view engine', 'html');
-// //views 템플릿으로 nunjucks 사용
-// nunjucks.configure('views', {
-//     express: app,
-//     watch: true,
-// });
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
@@ -51,9 +45,16 @@ sequelize.sync({ force: false })
     });
 
 
+let serAccount = require('./travelguide.json');
+
+admin.initializeApp({
+    credential: admin.credential.cert(serAccount),
+})
+
 app.use('/', indexRouter);
 app.use('/auth', authRouter);
 app.use('/group', groupRouter);
+//app.use('/push', pushRouter)
 
 //요청을 수신할 때마다 실행
 app.use(function (req, res, next) {

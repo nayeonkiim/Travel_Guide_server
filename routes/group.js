@@ -4,7 +4,6 @@ const User = require('../models/user');
 const UserGroup = require('../models/userGroup');
 const router = express.Router();
 const { sequelize } = require('../models');
-const e = require('express');
 
 
 //그룹 생성
@@ -132,8 +131,9 @@ router.get("/:userId", async (req, res, next) => {
                 raw: true
             })
                 .then(groups => {
-                    console.log(groups);
-                    return res.status(200).json(groups);
+                    const message = { 'approve': 'ok_group', 'group': groups };
+                    console.log(message);
+                    return res.status(200).json(message);
                 })
                 .catch(err => {
                     console.log(err);
