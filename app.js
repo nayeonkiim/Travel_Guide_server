@@ -5,7 +5,6 @@ const session = require('express-session');
 const passport = require('passport');
 const admin = require('firebase-admin');
 
-
 dotenv.config();
 const indexRouter = require('./routes/index');
 const authRouter = require('./routes/auth');
@@ -17,7 +16,7 @@ const pushRouter = require('./routes/push');
 const app = express();
 
 passportConfig(); //패스포트 설정
-app.set('port', process.env.PORT || 3001);  //8001 포트로 설정 
+app.set('port', process.env.PORT || 3001);  //3001 포트로 설정 
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
@@ -54,7 +53,7 @@ admin.initializeApp({
 app.use('/', indexRouter);
 app.use('/auth', authRouter);
 app.use('/group', groupRouter);
-//app.use('/push', pushRouter)
+app.use('/push', pushRouter)
 
 //요청을 수신할 때마다 실행
 app.use(function (req, res, next) {
@@ -72,8 +71,12 @@ app.use((err, req, res, next) => {
     res.status(err.status || 500).send(approve);
 });
 
-app.listen(app.get('port'), function () {
+var server = app.listen(app.get('port'), function () {
     console.log("Express server has started on port " + app.get('port'));
 });
 
-module.exports = app;
+var listen = require('socket.io');
+var io = listen(server);
+
+//불러오고 바로 실행
+require('./routes/socket')(io);
