@@ -71,12 +71,6 @@ app.use((err, req, res, next) => {
     res.status(err.status || 500).send(approve);
 });
 
-var server = app.listen(app.get('port'), function () {
+app.listen(app.get('port'), function () {
     console.log("Express server has started on port " + app.get('port'));
 });
-
-var listen = require('socket.io');
-var io = listen(server);
-
-//불러오고 바로 실행
-require('./routes/socket')(io);
