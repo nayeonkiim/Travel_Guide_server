@@ -6,10 +6,10 @@ const User = require('../models/user');
 const Token = require('../models/token');
 
 
-router.get('/alarm/:title', async (req, res, next) => {
+router.post('/alarm', async (req, res, next) => {
 
     console.log('push 알람 라우터 호출');
-    const title = req.params.title;
+    const title = req.body.title;
     let userMap = [];
     try {
         //title로 groupId 구하기
@@ -33,7 +33,7 @@ router.get('/alarm/:title', async (req, res, next) => {
     }
 
     //target_token은 푸시 메시지를 받을 디바이스의 토큰값입니다
-    let target_token = '';
+    let target_token = [];
     console.log(userMap);
     for (let i = 0; i < userMap.length; i++) {
         console.log(userMap[i]);
@@ -44,28 +44,11 @@ router.get('/alarm/:title', async (req, res, next) => {
                 raw: true,
                 nest: true
             }).then(result => {
-                //token 값 넣어주기
-                if (!result) {
-                    target_token = result;
-
-                    let message = {
-                        data: {
-                            title: '테스트 데이터 발송',
-                            body: '데이터가 잘 가나요?',
-                            style: '굳굳',
-                        },
-                        token: target_token,
-                    }
-
-                    admin
-                        .messaging()
-                        .send(message)
-                        .then(function (response) {
-                            console.log('Successfully sent message: : ', response)
-                        })
-                        .catch(function (err) {
-                            console.log('Error Sending message!!! : ', err)
-                        })
+                console.log("result: " + Object.keys(result).length);
+                //toknpen 값 넣어주기
+                if (Object.keys(result).length > 0) {
+                    target_token.push(result.token);
+                    console.log(target_token);
                 } else {
                     let approve = { "approve": "fail_tokenNull" }
                     console.log('token 값이 null 입니다.');
@@ -77,6 +60,21 @@ router.get('/alarm/:title', async (req, res, next) => {
             next(err);
         }
     }
+
+    const message = {
+        data: {
+            title: 'yayaya',
+            content: '데이터가 잘 가나요?',
+        },
+        tokens: target_token,
+    }
+
+    admin
+        .messaging()
+        .sendMulticast(message)
+        .then((response) => {
+            console.log(response.successCount + ' messages were sent successfully');
+        });
 });
 
 
