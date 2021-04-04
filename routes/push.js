@@ -20,11 +20,17 @@ router.post('/alarm', async (req, res, next) => {
                 //그룹이 존재한다면 그룹의 멤버들의 id 조회
                 if (groupId) {
                     const users = await groupId.getUsers({
-                        attributes: ['id'],
+                        attributes: ['id', 'role'],
                         raw: true,
                         nest: true
                     }).then(users => {
-                        userMap = users.map(el => el.id);
+                        //manager가 아닌 멤버들에게만 push 알람 보내기 위해
+                        for (let i = 0; i < users.length; i++) {
+                            if (users[i].role != 'manager') {
+                                userMap.push(users[i].id);
+                            }
+                        }
+                        console.log("push 알람 보낼 멤버: " + userMap);
                     });
                 }
             });
