@@ -105,20 +105,43 @@ router.post('/login', (req, res, next) => {
 
             //기기별 토큰 db에 저장
             try {
-                const saveToken = await Token.create({
-                    token
-                }).then(async (saveToken) => {
-                    console.log("토큰 저장 완료");
-                    const result = await saveToken.setUser(userInfo);
-                    console.log("result: " + result);
-                    if (result) {
-                        //로그인 완료되어 user 정보 전송
-                        res.status(200).json(approve);
-                    } else {
-                        approve.approve = 'token 정보 저장 실패';
-                        res.status(500).json(approve);
-                    }
+                //userId에 해당하는 token이 이미 존재하는지 확인
+                const findToken = await Token.findOne({
+                    where: { UserId: userInfo.id },
+                    raw: true,
                 })
+                    .then(async (findToken) => {
+                        console.log("findToken : " + findToken);
+                        //token이 이미 존재하는 경우
+                        if (findToken != null) {
+                            //db에 저장되어 있는 token과 들어온 token이 동일한 경우
+                            if (token === findToken.token) {
+                                return res.status(200).json(approve);
+                            } else {
+                                //token 정보가 다른 경우 삭제
+                                await Token.destroy({
+                                    where: { UserId: userInfo.id }
+                                });
+                            }
+                        }
+
+                        //token 정보 저장
+                        const saveToken = await Token.create({
+                            token
+                        }).then(async (saveToken) => {
+                            console.log("토큰 저장 완료");
+                            const result = await saveToken.setUser(userInfo);
+                            console.log("result: " + result);
+                            if (result) {
+                                //로그인 완료되어 user 정보 전송
+                                return res.status(200).json(approve);
+                            } else {
+                                approve.approve = 'token 정보 저장 실패';
+                                return res.status(500).json(approve);
+                            }
+                        })
+
+                    })
             } catch (err) {
                 console.error(err);
                 next(err);
