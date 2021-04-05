@@ -8,6 +8,10 @@ module.exports = class Location extends Sequelize.Model {
                 type: Sequelize.STRING(20),
                 allowNull: false,
             },
+            time: {
+                type: Sequelize.STRING(10),
+                allowNull: false,
+            },
             latitude: {
                 type: Sequelize.DOUBLE,
                 allowNull: false,
