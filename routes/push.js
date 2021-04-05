@@ -73,8 +73,8 @@ router.post('/alarm', async (req, res, next) => {
     //firebase 알림주는 코드
     const message = {
         data: {
-            title: 'yayaya',
-            content: '데이터가 잘 가나요?',
+            title: '위치정보',
+            content: '지금부터 귀하의 위치정보를 제공 받습니다.',
         },
         tokens: target_token,
     }

@@ -12,6 +12,7 @@ const passportConfig = require('./passport/index');
 const { sequelize } = require('./models');  //models/index.js
 const groupRouter = require('./routes/group');
 const pushRouter = require('./routes/push');
+const locationRouter = require('./routes/location');
 
 const app = express();
 
@@ -53,7 +54,8 @@ admin.initializeApp({
 app.use('/', indexRouter);
 app.use('/auth', authRouter);
 app.use('/group', groupRouter);
-app.use('/push', pushRouter)
+app.use('/push', pushRouter);
+app.use('/location', locationRouter);
 
 //요청을 수신할 때마다 실행
 app.use(function (req, res, next) {
