@@ -13,48 +13,56 @@ router.post('/', async (req, res, next) => {
     //const date = new Date.parse(req.body.date);
 
     console.log(req.body);
+    //트랜잭션 안에서 시작
+    //const t = await sequelize.transaction();
     try {
         let approve = { "approve": "ok" };
 
-        //트랜잭션 안에서 시작
-        const result = await sequelize.transaction(async (t) => {
-            //user 정보 찾기
-            const user = await User.findOne({
-                where: { userId },
-                raw: true,
-            })
-                .then(async (user) => {
-                    if (user != null) {
-                        console.log(user);
-                        //user가 존재하면 location 정보 저장
-                        const result = await Location.create({
-                            date,
-                            latitude,
-                            longitude,
-                        }, { transaction: t })
-                            .then(async (result) => {
-                                console.log(result);
-                                //만든 location 에 user 추가
-                                const addUser = await result.setUser(user);
-                                console.log(addUser);
-                                return res.status(200).json(approve);
-                            })
-                            .catch(err => {
-                                console.error(err);
-                                next(err);
-                            })
-                    } else {
-                        //user 없는 경우
-                        approve.approve = "없는 user 정보 입니다.";
-                        return res.status(500).json(approve);
-                    }
-                });
-        });
+        const createLocation = await Location.create({
+            date,
+            latitude,
+            longitude,
+        })
+            .then(async (createLocation) => {
+                const userInfo = await User.findOne({
+                    where: { userId },
+                    raw: true,
+                })
+                console.log(userInfo);
+
+                if (userInfo != null) {
+                    console.log(userInfo.id);
+                    const addUser = await createLocation.setUser(userInfo.id);
+                    console.log(addUser);
+                    //await t.commit();
+                    return res.status(200).json(approve);
+                } else {
+                    //user 없는 경우
+                    //await t.rollback();
+                    approve.approve = "없는 user 정보 입니다.";
+                    return res.status(500).json(approve);
+                }
+            });
+
+
+        // try {
+        //     //만든 location 에 user 추가
+        //     console.log(userInfo);
+        //     const addUser = await createLocation.setUser(userInfo);
+        //     console.log(addUser);
+        //     await t.commit();
+        //     return res.status(200).json(approve);
+        // } catch (err) {
+        //     await t.rollback();
+        //     approve.approve = '실패';
+        //     return res.status(500).json(approve);
+
+        // }
     } catch (err) {
+        // await t.rollback();
         console.error(err);
         next(err);
     }
-
 });
 
 
