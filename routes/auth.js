@@ -105,15 +105,6 @@ router.post('/login', (req, res, next) => {
 
             //기기별 토큰 db에 저장
             try {
-                //들어온 토큰이 이미 존재하면 지움
-                const allTokens = await Token.findOne({
-                    where: { token }
-                }).then(async (allTokens) => {
-                    await Token.destroy({
-                        where: { token: allTokens }
-                    });
-                });
-
                 //userId에 해당하는 token이 이미 존재하는지 확인
                 const findToken = await Token.findOne({
                     where: { UserId: userInfo.id },
