@@ -24,6 +24,9 @@ module.exports = class Group extends Sequelize.Model {
         db.Group.hasMany(db.UserGroup);
         db.Group.belongsToMany(db.User, { through: db.UserGroup });
         db.Group.hasMany(db.Notice);
+        db.Group.hasOne(db.Manager, {
+            onDelete: 'cascade'
+        });
     }
 }
 

@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const session = require('express-session');
 const passport = require('passport');
 const admin = require('firebase-admin');
+const nunjucks = require('nunjucks');
 
 dotenv.config();
 const indexRouter = require('./routes/index');
@@ -18,6 +19,11 @@ const app = express();
 
 passportConfig(); //패스포트 설정
 app.set('port', process.env.PORT || 3001);  //3001 포트로 설정 
+app.set('view engine', 'html');
+nunjucks.configure('views', {
+    express: app,
+    watch: true,
+});
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());

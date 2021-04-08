@@ -8,6 +8,7 @@ const UserGroup = require('./userGroup');
 const Token = require('./token');
 const Location = require('./location');
 const Visit = require('./visit');
+const Manager = require('./manager');
 
 const db = {};
 
@@ -22,6 +23,7 @@ db.Notice = Notice;
 db.Token = Token;
 db.Location = Location;
 db.Visit = Visit;
+db.Manager = Manager;
 
 User.init(sequelize);
 Group.init(sequelize);
@@ -30,6 +32,7 @@ Notice.init(sequelize);
 Token.init(sequelize);
 Location.init(sequelize);
 Visit.init(sequelize);
+Manager.init(sequelize);
 
 User.associate(db);
 Group.associate(db);
@@ -38,6 +41,7 @@ Notice.associate(db);
 Token.associate(db);
 Location.associate(db);
 Visit.associate(db);
+Manager.associate(db);
 
 module.exports = db;
 
