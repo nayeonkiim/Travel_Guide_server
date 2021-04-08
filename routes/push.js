@@ -13,6 +13,7 @@ router.post('/alarm', async (req, res, next) => {
     const title = req.body.title;
     const latitude = req.body.latitude;
     const longitude = req.body.longitude;
+    console.log(req.body);
     let userMap = [];
     try {
         //title로 groupId 구하기

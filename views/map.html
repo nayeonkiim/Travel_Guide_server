@@ -9,59 +9,65 @@
 
 <body>
     <div>간단한 map 웹 표시하기</div>
+    <input type="hidden" id="latitude" value={{latitude}}>
+    <input type="hidden" id="longitude" value={{longitude}}>
     <div id="map" style="width:100%;height:650px;"></div>
-    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=키 정보"></script>
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=인증키"></script>
 
     <script>
-        var mapContainer = document.getElementById('map'), // 지도를 표시할 div 
-            mapOption = {
-                center: new kakao.maps.LatLng(33.450701, 126.570667), // 지도의 중심좌표
-                level: 3 // 지도의 확대 레벨
-            };
+        window.onload = () => {
+            var latitude = document.getElementById("latitude").value;
+            var longitude = document.getElementById("longitude").value;
 
-        var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
+            var mapContainer = document.getElementById('map'), // 지도를 표시할 div 
+                mapOption = {
+                    center: new kakao.maps.LatLng(latitude, longitude), // 지도의 중심좌표
+                    level: 3 // 지도의 확대 레벨
+                };
+
+            var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
 
 
-        // 선을 구성하는 좌표 배열입니다. 이 좌표들을 이어서 선을 표시합니다
-        var linePath = [
-            new kakao.maps.LatLng(35.0967055, 129.0282998),
-            new kakao.maps.LatLng(35.1006536, 129.0304339),
-            new kakao.maps.LatLng(35.1012187, 129.0301323),
-            new kakao.maps.LatLng(35.101276, 129.0235424)
-        ];
+            // 선을 구성하는 좌표 배열입니다. 이 좌표들을 이어서 선을 표시합니다
+            var linePath = [
+                new kakao.maps.LatLng(35.0967055, 129.0282998),
+                new kakao.maps.LatLng(35.1006536, 129.0304339),
+                new kakao.maps.LatLng(35.1012187, 129.0301323),
+                new kakao.maps.LatLng(35.101276, 129.0235424)
+            ];
 
-        var linePath2 = [
-            new kakao.maps.LatLng(35.1012922, 129.0303871),
-            new kakao.maps.LatLng(35.0990262, 129.0254763),
-            new kakao.maps.LatLng(35.1012187, 129.0301323),
-            new kakao.maps.LatLng(35.101276, 129.0235424)
-        ]
+            var linePath2 = [
+                new kakao.maps.LatLng(35.1012922, 129.0303871),
+                new kakao.maps.LatLng(35.0990262, 129.0254763),
+                new kakao.maps.LatLng(35.1012187, 129.0301323),
+                new kakao.maps.LatLng(35.101276, 129.0235424)
+            ]
 
-        // 지도에 표시할 선을 생성합니다
-        var polyline = new kakao.maps.Polyline({
-            path: [
-                linePath
-            ], // 선을 구성하는 좌표배열 입니다
-            strokeWeight: 5, // 선의 두께 입니다
-            strokeColor: '#FFAE00', // 선의 색깔입니다
-            strokeOpacity: 0.8, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
-            strokeStyle: 'solid' // 선의 스타일입니다
-        });
+            // 지도에 표시할 선을 생성합니다
+            var polyline = new kakao.maps.Polyline({
+                path: [
+                    linePath
+                ], // 선을 구성하는 좌표배열 입니다
+                strokeWeight: 5, // 선의 두께 입니다
+                strokeColor: '#FFAE00', // 선의 색깔입니다
+                strokeOpacity: 0.8, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
+                strokeStyle: 'solid' // 선의 스타일입니다
+            });
 
-        var polyline2 = new kakao.maps.Polyline({
-            path: [
-                linePath2
-            ], // 선을 구성하는 좌표배열 입니다
-            strokeWeight: 5, // 선의 두께 입니다
-            strokeColor: '#FF00FF', // 선의 색깔입니다
-            strokeOpacity: 0.8, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
-            strokeStyle: 'solid' // 선의 스타일입니다
-        });
+            var polyline2 = new kakao.maps.Polyline({
+                path: [
+                    linePath2
+                ], // 선을 구성하는 좌표배열 입니다
+                strokeWeight: 5, // 선의 두께 입니다
+                strokeColor: '#FF00FF', // 선의 색깔입니다
+                strokeOpacity: 0.8, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
+                strokeStyle: 'solid' // 선의 스타일입니다
+            });
 
-        // 지도에 선을 표시합니다 
-        polyline.setMap(map);
-        polyline2.setMap(map);
-
+            // 지도에 선을 표시합니다 
+            polyline.setMap(map);
+            polyline2.setMap(map);
+        }
     </script>
 </body>
 

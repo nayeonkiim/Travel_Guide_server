@@ -28,7 +28,7 @@ router.get('/map/:title', async (req, res, next) => {
     });
 
     if (result != null) {
-        res.render('map', { latitude: `result.latitude`, longitude: `result.longitude` });
+        res.render('map', { latitude: result.latitude, longitude: result.longitude });
     } else {
         const approve = { "approve": "no latitude, no longitude" };
         res.status(500).json(approve);
