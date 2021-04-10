@@ -34,5 +34,6 @@ module.exports = class Location extends Sequelize.Model {
 
     static associate(db) {
         db.Location.belongsTo(db.User);
+        db.Location.belongsTo(db.Group);
     }
 }
