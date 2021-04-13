@@ -11,8 +11,6 @@ const { sequelize } = require('../models');
 router.post('/alarm', async (req, res, next) => {
     console.log('push 알람 라우터 호출');
     const title = req.body.title;
-    const latitude = req.body.latitude;
-    const longitude = req.body.longitude;
     console.log(req.body);
     let userMap = [];
     try {
@@ -23,18 +21,6 @@ router.post('/alarm', async (req, res, next) => {
             .then(async (groupId) => {
                 //그룹이 존재한다면 그룹의 멤버들의 id 조회
                 if (groupId) {
-                    //먼저 매니저의 위도,경도 값을 managers 테이블에 저장
-                    const result = await sequelize.transaction(async (t) => {
-                        const saveManagerLoc = await Manager.create({
-                            latitude,
-                            longitude
-                        }, { transcation: t }).then(async (el) => {
-                            if (el != null) {
-                                await el.setGroup(groupId, { transaction: t });
-                            }
-                        })
-                    });
-
                     const users = await groupId.getUsers({
                         attributes: ['id', 'role'],
                         raw: true,
