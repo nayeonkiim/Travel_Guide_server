@@ -4,7 +4,8 @@ const { sequelize } = require('../models');
 const User = require('../models/user');
 const Group = require('../models/group');
 const Location = require('../models/location');
-const Visit = require('../models/visit');
+const TourPlace = require('../models/tourplace');
+const { Op } = require("sequelize");
 
 
 router.post('/', async (req, res, next) => {
@@ -27,6 +28,25 @@ router.post('/', async (req, res, next) => {
         })
         console.log(userInfo);
 
+        //위도,경도(0.01보다 오차범위 작은) 근처 관광지 찾기
+        const whichPlace = await TourPlace.findOne({
+            where: {
+                latitude: {
+                    [Op.and]: {
+                        [Op.gt]: latitude - 0.01,
+                        [Op.lt]: latitude + 0.01
+                    }
+                },
+                longitude: {
+                    [Op.and]: {
+                        [Op.gt]: longitude - 0.01,
+                        [Op.lt]: longitude + 0.01
+                    }
+                }
+            }
+        });
+        console.log(whichPlace);
+
         const result = await sequelize.transaction(async (t) => {
             if (userInfo != null) {
                 //위치 정보 저장
@@ -37,12 +57,24 @@ router.post('/', async (req, res, next) => {
                     longitude,
                 }, { transaction: t });
 
-                return createLocation;
+                //새로 생성한 위치정보에 tourplace 정보 넣어주기
+                await createLocation.addTourPlace(whichPlace);
+            }
+        });
+
+        //받은 주소와 등록된 주소가 동일한지 확인
+        const findaddr = await TourPlace.findOne({
+            where: { address },
+        }).then(async (findaddr) => {
+            console.log("findaddr: " + findaddr);
+            if (findaddr != null) {
+                const save = await findaddr.addLocations(result);
+                console.log("save:" + save);
             }
         });
 
         //user 정보가 있는 경우
-        if (result) {
+        if (result != null) {
             //userId 와 위치정보 연관시켜주기
             const addUser = await result.setUser(userInfo);
             console.log("정상적으로 위치 저장 완료");
@@ -52,6 +84,7 @@ router.post('/', async (req, res, next) => {
             approve.approve = "없는 user 정보 입니다.";
             return res.status(500).json(approve);
         }
+
     } catch (err) {
         console.error(err);
         next(err);
@@ -171,7 +204,7 @@ router.get('/visited/:title', async (req, res, next) => {
 
                     console.log("birthYear: " + birthYear);
                     console.log("age: " + age);
-                    
+
                     //visit 테이블에 user와 위치, 날짜 정보 넣기
                     const createVisit = await Visit.create({
                         date: dateInfo,

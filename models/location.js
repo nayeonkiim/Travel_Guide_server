@@ -35,6 +35,8 @@ module.exports = class Location extends Sequelize.Model {
     static associate(db) {
         db.Location.belongsTo(db.User);
         db.Location.hasMany(db.TourLocation);
+        db.Location.hasMany(db.TourSubLocation);
         db.Location.belongsToMany(db.TourPlace, { through: db.TourLocation });
+        db.Location.belongsToMany(db.TourSubPlace, { through: db.TourSubLocation });
     }
 }

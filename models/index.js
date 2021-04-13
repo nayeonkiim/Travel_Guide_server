@@ -7,9 +7,10 @@ const Notice = require('./notice');
 const UserGroup = require('./userGroup');
 const Token = require('./token');
 const Location = require('./location');
-const Manager = require('./manager');
 const TourPlace = require('./tourplace');
 const TourLocation = require('./tourlocation');
+const TourSubPlace = require('./toursubplace');
+const TourSubLocation = require('./toursublocation');
 
 const db = {};
 
@@ -23,9 +24,10 @@ db.UserGroup = UserGroup;
 db.Notice = Notice;
 db.Token = Token;
 db.Location = Location;
-db.Manager = Manager;
 db.TourPlace = TourPlace;
 db.TourLocation = TourLocation;
+db.TourSubPlace = TourSubPlace;
+db.TourSubLocation = TourSubLocation;
 
 User.init(sequelize);
 Group.init(sequelize);
@@ -33,9 +35,10 @@ UserGroup.init(sequelize);
 Notice.init(sequelize);
 Token.init(sequelize);
 Location.init(sequelize);
-Manager.init(sequelize);
 TourPlace.init(sequelize);
 TourLocation.init(sequelize);
+TourSubPlace.init(sequelize);
+TourSubLocation.init(sequelize);
 
 User.associate(db);
 Group.associate(db);
@@ -43,9 +46,10 @@ UserGroup.associate(db);
 Notice.associate(db);
 Token.associate(db);
 Location.associate(db);
-Manager.associate(db);
 TourPlace.associate(db);
 TourLocation.associate(db);
+TourSubPlace.associate(db);
+TourSubLocation.associate(db);
 
 module.exports = db;
 

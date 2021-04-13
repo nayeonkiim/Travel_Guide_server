@@ -1,15 +1,11 @@
 const Sequelize = require('sequelize');
 
-module.exports = class TourPlace extends Sequelize.Model {
+module.exports = class TourSubPlace extends Sequelize.Model {
     static init(sequelize) {
         return super.init({
             name: {
                 type: Sequelize.STRING(50),
                 allowNull: false
-            },
-            address: {
-                type: Sequelize.STRING(80),
-                allowNull: false,
             },
             latitude: {
                 type: Sequelize.DOUBLE,
@@ -23,8 +19,8 @@ module.exports = class TourPlace extends Sequelize.Model {
             sequelize,
             timestamps: false,
             underscored: false,
-            modelName: 'TourPlace',
-            tableName: 'tourplaces',
+            modelName: 'TourSubPlace',
+            tableName: 'toursubplaces',
             paranoid: false,
             charset: 'utf8mb4',
             collate: 'utf8mb4_general_ci',
@@ -32,8 +28,8 @@ module.exports = class TourPlace extends Sequelize.Model {
     }
 
     static associate(db) {
-        db.TourPlace.hasMany(db.TourLocation);
-        db.TourPlace.belongsToMany(db.Location, { through: db.TourLocation });
-        db.TourPlace.hasMany(db.TourSubPlace);
+        db.TourSubPlace.belongsTo(db.TourPlace);
+        db.TourSubPlace.belongsToMany(db.Location, { through: db.TourSubLocation });
+        db.TourSubPlace.hasMany(db.TourSubLocation);
     }
 }
