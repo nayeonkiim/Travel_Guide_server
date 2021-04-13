@@ -14,6 +14,7 @@ const { sequelize } = require('./models');  //models/index.js
 const groupRouter = require('./routes/group');
 const pushRouter = require('./routes/push');
 const locationRouter = require('./routes/location');
+const mapRouter = require('./routes/map');
 
 const app = express();
 
@@ -62,6 +63,7 @@ app.use('/auth', authRouter);
 app.use('/group', groupRouter);
 app.use('/push', pushRouter);
 app.use('/location', locationRouter);
+app.use('/map', mapRouter);
 
 //요청을 수신할 때마다 실행
 app.use(function (req, res, next) {

@@ -1,15 +1,14 @@
-
 const Sequelize = require('sequelize');
 
-module.exports = class Location extends Sequelize.Model {
+module.exports = class TourPlace extends Sequelize.Model {
     static init(sequelize) {
         return super.init({
-            date: {
-                type: Sequelize.STRING(20),
-                allowNull: false,
+            name: {
+                type: Sequelize.STRING(50),
+                allowNull: false
             },
-            time: {
-                type: Sequelize.STRING(10),
+            address: {
+                type: Sequelize.STRING(80),
                 allowNull: false,
             },
             latitude: {
@@ -24,8 +23,8 @@ module.exports = class Location extends Sequelize.Model {
             sequelize,
             timestamps: false,
             underscored: false,
-            modelName: 'Location',
-            tableName: 'locations',
+            modelName: 'TourPlace',
+            tableName: 'tourplaces',
             paranoid: false,
             charset: 'utf8mb4',
             collate: 'utf8mb4_general_ci',
@@ -33,8 +32,7 @@ module.exports = class Location extends Sequelize.Model {
     }
 
     static associate(db) {
-        db.Location.belongsTo(db.User);
-        db.Location.hasMany(db.TourLocation);
-        db.Location.belongsToMany(db.TourPlace, { through: db.TourLocation });
+        db.TourPlace.hasMany(db.TourLocation);
+        db.TourPlace.belongsToMany(db.Location, { through: db.TourLocation });
     }
 }
