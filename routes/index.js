@@ -1,5 +1,4 @@
 const express = require('express');
-const Manager = require('../models/manager');
 const Group = require('../models/group');
 const router = express.Router();
 

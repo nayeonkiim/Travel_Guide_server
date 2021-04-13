@@ -4,7 +4,6 @@ const admin = require('firebase-admin')
 const Group = require('../models/group');
 const User = require('../models/user');
 const Token = require('../models/token');
-const Manager = require('../models/manager');
 const { sequelize } = require('../models');
 
 
