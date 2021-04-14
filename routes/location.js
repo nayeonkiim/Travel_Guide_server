@@ -113,7 +113,7 @@ router.post('/', async (req, res, next) => {
 
 
 router.get('/:title', async (req, res, next) => {
-    console.log('멤버들이 30분 이상 방문한 공간 저장하는 라우터 호출');
+    console.log('멤버들 위치로 sub 장소 평균시간 업데이트 라우터 호출');
     const title = req.params.title;
     let date = new Date();
     let today = '';
@@ -166,17 +166,13 @@ router.get('/:title', async (req, res, next) => {
             //해당 user가 방문한 장소 조회
             let todayVisit = await Location.findAll({
                 where: { date: today, UserId: userMap[i] },
-                include: [{
-                    model: TourSubLocation,
-                    where: { id: { ne: null } },
-                    attributes: ['TourSubPlaceId']
-                }],
-                attributes: ['id', 'date', 'time', 'latitude', 'longitude'],
+                // attributes: ['id', 'date', 'time', 'latitude', 'longitude'],
                 order: ['id'],
-                raw: true
+                //raw: true
             });
-
+            const subPlace = await todayVisit.getTourSubLocation();
             console.log(todayVisit);
+            console.log(subPlace);
 
             //방문 기록이 없는 경우 다음 user의 방문 기록 탐색
             if (todayVisit.length == 0)
@@ -278,25 +274,33 @@ router.get('/reload/:title/:date', async (req, res, next) => {
         });
         const id = users.filter(user => user.role == 'member').map(user => user.id);
         const userId = users.filter(user => user.role == 'member').map(user => user.userId);
-        
+
         console.log(id);
-        
+
         let curLoc = [];
         for (let i = 0; i < id.length; i++) {
             console.log(id[i]);
             let location = await Location.findOne({
-                where: { UserId: id[i], date},
+                where: { UserId: id[i], date },
                 order: [['time', 'DESC']],
                 attributes: ['latitude', 'longitude'],
                 raw: true
             });
-            
+
             location.userId = userId[i];
             curLoc.push(location);
         }
+
         console.log(curLoc);
-        let approve = {'approve':'ok', curLoc};
-        res.status(200).json(approve);
+        let approve = { 'approve': 'fail' };
+        if (curLoc.length < 0) {
+            res.status(500).json(approve);
+        } else {
+            approve.approve = 'ok';
+            approve.curLoc = curLoc;
+            res.status(200).json(approve);
+        }
+
     } catch (err) {
         console.error(err);
         next(err);
