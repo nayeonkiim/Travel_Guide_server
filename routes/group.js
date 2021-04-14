@@ -195,50 +195,28 @@ router.get("/member/:title", async (req, res, next) => {
 });
 
 
-//공지사항 목록
-router.get("/notice/:title", async (req, res, next) => {
-    console.log('공지사항 목록 라우터 호출됨');
-    const groupTitle = req.params.title;
+router.get('/mygroup/:userId', async (req, res, next) => {
+    const userId = req.params.userId;
     try {
-        const result = await Group.findOne({
-            where: { title: groupTitle }
+        const mygroup = await Group.findAll({
+            where: { userId },
+            attributes: [title]
         });
-        const re = await result.getNotices({
-            attributes: ['title'],
-            raw: true
-        });
-        console.log(re);
-
-        if (re.length > 0) {
-            return res.status(200).json(re);
-        } else {
-            const message = { 'approve': '공지글이 존재하지 않습니다.' };
-            return res.status(401).json(message);
+        console.log(mygroup);
+        if (mygroup.length > 0) {
+            let approve = { 'approve': 'ok', 'group': group };
+            res.status(200).json(approve);
         }
-    } catch (err) {
-        console.error(err);
-        next(err);
-    }
-});
-
-//공지사항 글 조회
-router.get("/notice/:title", (req, res, next) => {
-    console.log('공지사항 글 조회 라우터 호출됨');
-});
-
-//공지사항 글 작성
-router.post("/notice/:title", (req, res, next) => {
-    console.log('공지사항 글 작성 라우터 호출됨');
-    const body = req.body;
-    try {
+        else {
+            let approve = { 'approve': 'fail_nogroup' };
+            res.status(500).json(approve);
+        }
 
     } catch (err) {
         console.error(err);
-        next(err);
+        next();
     }
 });
-
-//공지사항 글 수정
 
 
 //멤버 위치 조회
