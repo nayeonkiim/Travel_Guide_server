@@ -185,7 +185,7 @@ router.get('/:title', async (req, res, next) => {
             //subPlace에 방문한 기록있는 location id만 추출    
             let id = todayVisit.map(el => el.id);
             console.log(id);
-            
+
 
             // let time = todayVisit.map(el => el.time);
             // let latitude = todayVisit.map(el => el.latitude);
@@ -255,6 +255,48 @@ router.get('/:title', async (req, res, next) => {
         //성공적으로 저장완료됨
         //return res.status(200).send(approve);
         //}
+    } catch (err) {
+        console.error(err);
+        next(err);
+    }
+});
+
+router.get('/reload/:title/:date', async (req, res, next) => {
+    console.log('멤버 실시간 위치 조회 라우터 호출됨');
+    const title = req.params.title;
+    const date = req.params.date;
+
+    try {
+        //그룹 멤버 조회하기
+        const groupId = await Group.findOne({
+            where: { title }
+        });
+        //멤버들만 가져오기
+        const users = await groupId.getUsers({
+            attributes: ['id', 'role', 'userId'],
+            raw: true
+        });
+        const id = users.filter(user => user.role == 'member').map(user => user.id);
+        const userId = users.filter(user => user.role == 'member').map(user => user.userId);
+        
+        console.log(id);
+        
+        let curLoc = [];
+        for (let i = 0; i < id.length; i++) {
+            console.log(id[i]);
+            let location = await Location.findOne({
+                where: { UserId: id[i], date},
+                order: [['time', 'DESC']],
+                attributes: ['latitude', 'longitude'],
+                raw: true
+            });
+            
+            location.userId = userId[i];
+            curLoc.push(location);
+        }
+        console.log(curLoc);
+        let approve = {'approve':'ok', curLoc};
+        res.status(200).json(approve);
     } catch (err) {
         console.error(err);
         next(err);
