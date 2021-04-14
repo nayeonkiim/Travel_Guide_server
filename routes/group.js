@@ -195,7 +195,7 @@ router.get("/member/:title", async (req, res, next) => {
 });
 
 
-router.get('/mygroup/:userId', async (req, res, next) => {
+router.get('/myGroup/:userId', async (req, res, next) => {
     console.log('멤버 한명 그룹 조회 라우터 호출됨');
     const userId = req.params.userId;
     try {
@@ -204,20 +204,24 @@ router.get('/mygroup/:userId', async (req, res, next) => {
         });
         console.log(user);
 
-        const mygroup = await Group.findAll({
+        //user 가 포함된 group 정보들 조회
+        let mygroup = await Group.findAll({
             include: [{
                 model: UserGroup,
                 where: { UserId: user.id },
             }],
             attributes: ['title'],
             raw: true
-        }).map(el => el.title);
+        });
+        mygroup = mygroup.map(el => el.title);
         console.log(mygroup);
 
+        //그룹 갯수가 하나이상이면 그룹 정보 보내주기
         if (mygroup.length > 0) {
             let approve = { 'approve': 'ok', 'group': mygroup };
             res.status(200).json(approve);
         }
+        //그룹 갯수 없는 경우 
         else {
             let approve = { 'approve': 'fail_nogroup' };
             res.status(500).json(approve);
@@ -227,13 +231,6 @@ router.get('/mygroup/:userId', async (req, res, next) => {
         console.error(err);
         next();
     }
-});
-
-
-//멤버 위치 조회
-router.get('/location', async (req, res, next) => {
-    const title = req.body.title;
-    const userId = req.body.userId;
 });
 
 module.exports = router;
