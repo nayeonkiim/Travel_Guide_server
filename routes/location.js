@@ -57,33 +57,17 @@ router.post('/', async (req, res, next) => {
                     longitude,
                 }, { transaction: t });
 
+                const addUser = await createLocation.setUser(userInfo, { transaction: t });
+                console.log("정상적으로 위치 저장 완료");
                 //새로 생성한 위치정보에 tourplace 정보 넣어주기
-                await createLocation.addTourPlace(whichPlace);
+                const tour = await createLocation.addTourPlace(whichPlace, { transaction: t });
+                console.log("정상적으로 관광지 장소와 연관 맺어주기 완료");
+                return res.status(200).json(approve);
+            } else {
+                approve.approve = "없는 user 정보 입니다.";
+                return res.status(500).json(approve);
             }
         });
-
-        //받은 주소와 등록된 주소가 동일한지 확인
-        const findaddr = await TourPlace.findOne({
-            where: { address },
-        }).then(async (findaddr) => {
-            console.log("findaddr: " + findaddr);
-            if (findaddr != null) {
-                const save = await findaddr.addLocations(result);
-                console.log("save:" + save);
-            }
-        });
-
-        //user 정보가 있는 경우
-        if (result != null) {
-            //userId 와 위치정보 연관시켜주기
-            const addUser = await result.setUser(userInfo);
-            console.log("정상적으로 위치 저장 완료");
-            return res.status(200).json(approve);
-        } else {
-            //user 없는 경우
-            approve.approve = "없는 user 정보 입니다.";
-            return res.status(500).json(approve);
-        }
 
     } catch (err) {
         console.error(err);
@@ -91,7 +75,7 @@ router.post('/', async (req, res, next) => {
     }
 });
 
-
+//수정 필요,,,
 router.get('/visited/:title', async (req, res, next) => {
     console.log('멤버들이 30분 이상 방문한 공간 저장하는 라우터 호출');
     const title = req.params.title;
