@@ -196,15 +196,26 @@ router.get("/member/:title", async (req, res, next) => {
 
 
 router.get('/mygroup/:userId', async (req, res, next) => {
+    console.log('멤버 한명 그룹 조회 라우터 호출됨');
     const userId = req.params.userId;
     try {
-        const mygroup = await Group.findAll({
-            where: { userId },
-            attributes: [title]
+        const user = await User.findOne({
+            where: { userId }
         });
+        console.log(user);
+
+        const mygroup = await Group.findAll({
+            include: [{
+                model: UserGroup,
+                where: { UserId: user.id },
+            }],
+            attributes: ['title'],
+            raw: true
+        }).map(el => el.title);
         console.log(mygroup);
+
         if (mygroup.length > 0) {
-            let approve = { 'approve': 'ok', 'group': group };
+            let approve = { 'approve': 'ok', 'group': mygroup };
             res.status(200).json(approve);
         }
         else {
