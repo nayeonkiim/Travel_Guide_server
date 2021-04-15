@@ -24,7 +24,7 @@ router.post('/', async (req, res, next) => {
     console.log(req.body);
     //트랜잭션 안에서 시작
     let approve = { "approve": "ok" };
-    if (title == 'undefined') {
+    if (title == 'undefined' || title == undefined || title == null || title == 'null') {
         console.log(userId);
         try {
             //user 정보 조회
