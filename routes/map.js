@@ -42,7 +42,7 @@ router.post('/', async (req, res, next) => {
                 where: { TourPlaceId: result.id }
             }],
             attribute: ['latitude', 'longitude', 'UserId'],
-            order: ['time', 'UserId'],
+            order: ['UserId', 'time'],
             raw: true
         }).then(el => {
             let userid = el[0].UserId;
