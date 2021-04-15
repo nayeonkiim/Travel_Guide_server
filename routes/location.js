@@ -88,8 +88,9 @@ router.post('/', async (req, res, next) => {
                     const tour = await createLocation.addTourPlace(whichPlace, { transaction: t });
                     console.log("정상적으로 관광지 장소와 연관 맺어주기 완료");
 
+                    
                     //sub 관광 존재하면 연관관계 맺어주기
-                    if (Object.keys(whichSubPlace).length > 0) {
+                    if (Object.keys(whichSubPlace).length != null || Object.keys(whichSubPlace).length != undefined) {
                         const subPlace = await createLocation.addTourSubPlace(whichSubPlace, { transaction: t });
                         console.log('관광지 안의 sub 관광지에 있습니다.');
                     } else {
@@ -188,8 +189,8 @@ router.get('/:title', async (req, res, next) => {
             console.log(timeSentArr);
 
             //방문 기록이 없는 경우 다음 user의 방문 기록 탐색
-            // if (todayVisit.length == 0)
-            //     continue;
+            if (todayVisit.length == 0)
+                continue;
 
             // //subPlace에 방문한 기록있는 location id만 추출    
             // let id = todayVisit.map(el => el.id);
@@ -308,11 +309,11 @@ router.get('/reload/:title/:date', async (req, res, next) => {
         console.log(curLoc);
         let approve = { 'approve': 'fail' };
         if (curLoc.length < 0) {
-            res.status(500).json(approve);
+            return res.status(500).json(approve);
         } else {
             approve.approve = 'ok';
             approve.curLoc = curLoc;
-            res.status(200).json(approve);
+            return res.status(200).json(approve);
         }
 
     } catch (err) {

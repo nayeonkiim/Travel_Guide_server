@@ -142,12 +142,12 @@ router.get("/:userId", async (req, res, next) => {
         } else {
             //가이드가 아닌 경우
             const message = { 'approve': '가이드가 아닙니다.' };
-            return res.status(401).json(message);
+            return res.status(500).json(message);
         }
     } else {
         //그룹이 없는 경우
         const message = { 'approve': '그룹이 존재하지 않습니다.' };
-        return res.status(403).json(message);
+        return res.status(500).json(message);
     }
 });
 
