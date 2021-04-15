@@ -7,6 +7,7 @@ const User = require('../models/user');
 const Group = require('../models/group');
 const Location = require('../models/location');
 const TourPlace = require('../models/tourplace');
+const Time = require('../models/time');
 const { Op } = require("sequelize");
 
 
@@ -23,7 +24,8 @@ router.post('/', async (req, res, next) => {
     console.log(req.body);
     //트랜잭션 안에서 시작
     let approve = { "approve": "ok" };
-    if (userId != 'end') {
+    if (title == 'undefined') {
+        console.log(userId);
         try {
             //user 정보 조회
             const userInfo = await User.findOne({
@@ -90,11 +92,11 @@ router.post('/', async (req, res, next) => {
 
 
                     //sub 관광 존재하면 연관관계 맺어주기
-                    if (Object.keys(whichSubPlace).length != null || Object.keys(whichSubPlace).length != undefined) {
+                    if (whichSubPlace == null || whichSubPlace == undefined) {
+                        console.log('관광지 안의 sub 관광지에 있지 않습니다.');
+                    } else {
                         const subPlace = await createLocation.addTourSubPlace(whichSubPlace, { transaction: t });
                         console.log('관광지 안의 sub 관광지에 있습니다.');
-                    } else {
-                        console.log('관광지 안의 sub 관광지에 있지 않습니다.');
                     }
 
                     return res.status(200).json(approve);
@@ -108,168 +110,180 @@ router.post('/', async (req, res, next) => {
             next(err);
         }
     } else {
-        res.status(500).json(approve);
+        console.log('멤버들 위치로 sub 장소 평균시간 업데이트 라우터 호출');
+        let date = new Date();
+        let today = '';
+        //오늘 날짜 가져오기
+        if ((date.getMonth() + 1) < 10) {
+            if (date.getDate() < 10)
+                today = date.getFullYear() + '-0' + (date.getMonth() + 1) + '-0' + date.getDate();
+            else
+                today = date.getFullYear() + '-0' + (date.getMonth() + 1) + '-' + date.getDate();
+        } else {
+            if (date.getDate() < 10)
+                today = date.getFullYear() + '-' + (date.getMonth() + 1) + '-0' + date.getDate();
+            else
+                today = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
+        }
+        console.log(today);
+
+        let userMap = [];
+        let approve = { "approve": "ok" };
+        try {
+            //title로 groupId 구하기
+            const groupId = await Group.findOne({
+                where: { title }
+            })
+                .then(async (groupId) => {
+                    //그룹이 존재한다면 그룹의 멤버들의 id 조회
+                    if (groupId) {
+                        const users = await groupId.getUsers({
+                            attributes: ['id', 'role'],
+                            raw: true,
+                            nest: true
+                        }).then(users => {
+
+                            for (let i = 0; i < users.length; i++) {
+                                if (users[i].role != 'manager') {
+                                    userMap.push(users[i].id);
+                                }
+                            }
+                        });
+                    }
+                });
+
+            console.log("userMap " + userMap);
+
+            let timeSentArr = [];
+            let timeSentTotalArr = [];
+            //user 별로 방문한 공간과 
+            for (let i = 0; i < userMap.length; i++) {
+                const result = await TourSubPlace.findAll({
+                    include: [{
+                        model: Location,
+                        where: { 'UserId': userMap[i] },
+                        attributes: ['time', 'UserId'],
+                        order: ['id']
+                    }],
+                    attributes: ['id'],
+                    raw: true
+                }).then(result => {
+                    let idx = 0;
+                    for (let k = 0; k < result.length; k++) {
+                        if (result[k].length == 0) continue;
+                        let string = JSON.stringify(result[k]);
+                        let arr_st = string.split(',');
+                        let last = arr_st[1];
+                        last = last.split(':');
+                        let selecttime = { 'toursubplaceid': result[k].id, 'time': last[1].split(1) + ':' + last[2] + ':' + last[3], 'userId': userMap[i] };
+
+                        if (k == 0) {
+                            timeSentArr.push(selecttime);
+                            idx = result[k].id;
+                        } else {
+                            if (result[k].id == idx) {
+                                timeSentArr.push(selecttime);
+                                if (k == result.length - 1) timeSentTotalArr.push(timeSentArr);
+                            } else {
+                                timeSentTotalArr.push(timeSentArr);
+                                timeSentArr = [];
+                                timeSentArr.push(selecttime);
+                                idx = result[k].id;
+                            }
+                        }
+                    }
+                });
+            }
+
+            console.log(timeSentTotalArr);
+            let count = 0;
+            let arr_curId = [];
+            //맨처음, 맨끝 시간 차이 저장하기
+            for (let t = 0; t < timeSentTotalArr.length; t++) {
+                var startdate = new Date(today + " " + timeSentTotalArr[t][0].time.substring(1, timeSentTotalArr[t][0].time.length - 1));
+                var lastdate = new Date(today + " " + timeSentTotalArr[t][timeSentTotalArr[t].length - 1].time.substring(1, timeSentTotalArr[t][timeSentTotalArr[t].length - 1].time.length - 1));
+                console.log("startdate : " + startdate);
+                console.log("lastdate : " + lastdate);
+                var spend = lastdate - startdate;
+                console.log(spend);
+
+                for (let tt = 0; tt < timeSentTotalArr[t].length; tt++) {
+                    if (!arr_curId.includes(timeSentTotalArr[t][tt].userId)) {
+                        count += 1;
+                        arr_curId.push(timeSentTotalArr[t][tt].userId);
+                    }
+                }
+                console.log(arr_curId);
+
+                let toursubid = timeSentTotalArr[t][0].toursubplaceid;
+                const result = await sequelize.transaction(async (t) => {
+                    const time = await Time.create({
+                        total: spend,
+                        count: arr_curId.length,
+                        TourSubPlaceId: toursubid
+                    });
+                }, { transaction: t });
+                return res.status(500).json(approve);
+            }
+        } catch (err) {
+            console.error(err);
+            next(err);
+        }
     }
 });
 
-
-router.get('/:title', async (req, res, next) => {
-    console.log('멤버들 위치로 sub 장소 평균시간 업데이트 라우터 호출');
+router.get('/reload/:title/:date', async (req, res, next) => {
+    console.log('멤버 실시간 위치 조회 라우터 호출됨');
     const title = req.params.title;
-    let date = new Date();
-    let today = '';
-    //오늘 날짜 가져오기
-    if ((date.getMonth() + 1) < 10) {
-        if (date.getDate() < 10)
-            today = date.getFullYear() + '-0' + (date.getMonth() + 1) + '-0' + date.getDate();
-        else
-            today = date.getFullYear() + '-0' + (date.getMonth() + 1) + '-' + date.getDate();
-    } else {
-        if (date.getDate() < 10)
-            today = date.getFullYear() + '-' + (date.getMonth() + 1) + '-0' + date.getDate();
-        else
-            today = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
-    }
-    console.log(today);
+    const date = req.params.date;
 
-    let userMap = [];
-    let approve = { "approve": "ok" };
     try {
-        //title로 groupId 구하기
+        //그룹 멤버 조회하기
         const groupId = await Group.findOne({
             where: { title }
-        })
-            .then(async (groupId) => {
-                //그룹이 존재한다면 그룹의 멤버들의 id 조회
-                if (groupId) {
-                    const users = await groupId.getUsers({
-                        attributes: ['id', 'role'],
-                        raw: true,
-                        nest: true
-                    }).then(users => {
+        });
+        //멤버들만 가져오기
+        const users = await groupId.getUsers({
+            attributes: ['id', 'role', 'userId'],
+            raw: true
+        });
+        const id = users.filter(user => user.role == 'member').map(user => user.id);
+        const usersId = users.filter(user => user.role == 'member').map(user => user.userId);
 
-                        for (let i = 0; i < users.length; i++) {
-                            if (users[i].role != 'manager') {
-                                userMap.push(users[i].id);
-                            }
-                        }
-                    });
-                }
-            });
+        console.log(id);
+        console.log(usersId);
 
-        console.log("userMap.length: " + userMap.length);
-
-        let timeSentArr = [];
-        //user 별로 방문한 공간과 
-        for (let i = 0; i < userMap.length; i++) {
-
-            console.log(userMap[i]);
-            //해당 user가 방문한 장소 조회
-            const todayVisit = await Location.findAll({
-                include: [{
-                    model: TourSubLocation,
-                    where: { id: { ne: null } },
-                    attributes: ['TourSubPlaceId']
-                }],
-                where: { date: today, UserId: userMap[i] },
-                attributes: ['id', 'date', 'time', 'latitude', 'longitude'],
-                order: ['id'],
+        let curLoc = [];
+        for (let i = 0; i < id.length; i++) {
+            console.log(id[i]);
+            let location = await Location.findOne({
+                where: { UserId: id[i], date },
+                order: [['time', 'DESC']],
+                attributes: ['latitude', 'longitude'],
                 raw: true
             });
-
-            //{userId, TourSubPlaceId} 배열로 저장해주기
-            for (let j = 0; j < todayVisit.length; j++) {
-                let string = JSON.stringify(todayVisit[j]);
-                let arr_st = string.split(',');
-                let last = arr_st[arr_st.length - 1]
-                last = last.split(':');
-                let last2 = parseInt(last[last.length - 1].substr(0, 1));
-                timeSentArr.push({ 'userId': todayVisit[j].id, 'TourSubPlaceId': last2 });
+            if (location != null) {
+                console.log(location);
+                location.userId = usersId[i];
+                curLoc.push(location);
             }
-            console.log(timeSentArr);
-
-            //방문 기록이 없는 경우 다음 user의 방문 기록 탐색
-            if (todayVisit.length == 0)
-                continue;
-
-            // //subPlace에 방문한 기록있는 location id만 추출    
-            // let id = todayVisit.map(el => el.id);
-            // console.log(id);
-
-
-            // let time = todayVisit.map(el => el.time);
-            // let latitude = todayVisit.map(el => el.latitude);
-            // let longitude = todayVisit.map(el => el.longitude);
-            // console.log("last time: " + time[todayVisit.length - 1]);
-            // console.log("first time: " + time[0]);
-
-            // //06:00:00 형식에서 시,분,초를 분리하기
-            // let lastTime = time[todayVisit.length - 1].split(':');
-            // let firstTime = time[0].split(':');
-            // let userData = '';
-            // //마지막 시간과 처음 시간 차이를 계산, 30분 이상시 timeSent에 저장
-            // if (lastTime[0] - firstTime[0] >= 1) {
-            //     userData = userMap[i];
-            // } else if (lastTime[1] - firstTime[1] >= 30) {
-            //     userData = userMap[i];
-            // }
-
-            // //'오늘 날짜, user정보, 위도, 경도' 로 str에 저장
-            // let str = today + "," + userData + ',' + latitude[0] + ',' + longitude[0];
-            // timeSentArr.push(str);
         }
 
-        // //30분 이상 방문한 user 기록이 없는 경우 return
-        // if (timeSentArr.length == 0) {
-        //     approve.approve = 'ok_none';
-        //     return res.status(200).send(approve);
-        // }
-
-        // //30분 이상 차이가 나면 다른 테이블로 저장
-        // for (let i = 0; i < timeSentArr.length; i++) {
-        //     let timeData = timeSentArr[i].split(',');
-        //     let dateInfo = timeData[0];  //날짜
-        //     let userInfo = timeData[1];  //user의 id
-        //     let latitude = timeData[2];  //위도
-        //     let longitude = timeData[3]; //경도 
-
-        //     //트랜잭션 안에서 시작
-        //     const result = await sequelize.transaction(async (t) => {
-        //         //user 정보 찾기
-        //         const findUser = await User.findOne({
-        //             where: { id: userInfo }
-        //         }).then(async (findUser) => {
-        //             let userAge = String(findUser.birth);  //user의 태어난 생년월일
-        //             let birthYear = userAge.substring(0, 4); //년도만 가져옴
-        //             //현재 년에서 태어난 년도 계산하여 20대, 30대 인지를 저장
-        //             let age = parseInt((parseInt(date.getFullYear()) - parseInt(birthYear) + 1) / 10) * 10;
-
-        //             console.log("birthYear: " + birthYear);
-        //             console.log("age: " + age);
-
-        //             //visit 테이블에 user와 위치, 날짜 정보 넣기
-        //             const createVisit = await Visit.create({
-        //                 date: dateInfo,
-        //                 latitude,
-        //                 longitude,
-        //                 age,
-        //                 gender: findUser.gender
-        //             }, { transaction: t });
-        //             return createVisit;
-        //         }).catch(err => {
-        //             console.error(err);
-        //             next(err);
-        //         });
-        //     });
-        // };
-        //성공적으로 저장완료됨
-        //return res.status(200).send(approve);
-        //}
+        console.log(curLoc);
+        let approve = { 'approve': 'fail' };
+        if (curLoc.length < 0) {
+            return res.status(500).json(approve);
+        } else {
+            approve.approve = 'ok';
+            approve.curLoc = curLoc;
+            return res.status(200).json(approve);
+        }
     } catch (err) {
         console.error(err);
         next(err);
     }
 });
+
 
 router.get('/reload/:title/:date', async (req, res, next) => {
     console.log('멤버 실시간 위치 조회 라우터 호출됨');

@@ -31,5 +31,6 @@ module.exports = class TourSubPlace extends Sequelize.Model {
         db.TourSubPlace.belongsTo(db.TourPlace);
         db.TourSubPlace.belongsToMany(db.Location, { through: db.TourSubLocation });
         db.TourSubPlace.hasMany(db.TourSubLocation);
+        db.TourSubPlace.hasOne(db.Time);
     }
 }
