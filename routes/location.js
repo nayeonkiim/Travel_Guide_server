@@ -169,6 +169,7 @@ router.post('/', async (req, res, next) => {
                     raw: true
                 }).then(result => {
                     let idx = 0;
+
                     for (let k = 0; k < result.length; k++) {
                         if (result[k].length == 0) continue;
                         let string = JSON.stringify(result[k]);
@@ -183,7 +184,10 @@ router.post('/', async (req, res, next) => {
                         } else {
                             if (result[k].id == idx) {
                                 timeSentArr.push(selecttime);
-                                if (k == result.length - 1) timeSentTotalArr.push(timeSentArr);
+                                if (k == result.length - 1) {
+                                    timeSentTotalArr.push(timeSentArr);
+                                    timeSentArr = [];
+                                }
                             } else {
                                 timeSentTotalArr.push(timeSentArr);
                                 timeSentArr = [];
@@ -198,13 +202,16 @@ router.post('/', async (req, res, next) => {
             console.log(timeSentTotalArr);
             let count = 0;
             let arr_curId = [];
+            let spent = 0;
             //맨처음, 맨끝 시간 차이 저장하기
             for (let t = 0; t < timeSentTotalArr.length; t++) {
+                console.log(t);
                 var startdate = new Date(today + " " + timeSentTotalArr[t][0].time.substring(1, timeSentTotalArr[t][0].time.length - 1));
                 var lastdate = new Date(today + " " + timeSentTotalArr[t][timeSentTotalArr[t].length - 1].time.substring(1, timeSentTotalArr[t][timeSentTotalArr[t].length - 1].time.length - 1));
                 console.log("startdate : " + startdate);
                 console.log("lastdate : " + lastdate);
                 var spend = lastdate - startdate;
+                spent += spend;
                 console.log(spend);
 
                 for (let tt = 0; tt < timeSentTotalArr[t].length; tt++) {
@@ -214,17 +221,18 @@ router.post('/', async (req, res, next) => {
                     }
                 }
                 console.log(arr_curId);
-
-                let toursubid = timeSentTotalArr[t][0].toursubplaceid;
-                const result = await sequelize.transaction(async (t) => {
-                    const time = await Time.create({
-                        total: spend,
-                        count: arr_curId.length,
-                        TourSubPlaceId: toursubid
-                    });
-                }, { transaction: t });
-                return res.status(500).json(approve);
             }
+
+            let toursubid = timeSentTotalArr[0][0].toursubplaceid;
+
+            const time = await Time.create({
+                total: spent,
+                count: arr_curId.length,
+                TourSubPlaceId: toursubid
+            });
+
+
+            return res.status(500).json(approve);
         } catch (err) {
             console.error(err);
             next(err);
