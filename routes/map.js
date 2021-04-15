@@ -1,7 +1,10 @@
 const express = require('express');
+const Location = require('../models/location');
+const User = require('../models/user');
 const TourLocation = require('../models/tourlocation');
 const TourPlace = require('../models/tourplace');
 const TourSubPlace = require('../models/toursubplace');
+const TourSubLocation = require('../models/toursublocation');
 const router = express.Router();
 const { Op } = require('sequelize');
 const { sequelize } = require('../models');
@@ -17,7 +20,6 @@ router.post('/', async (req, res, next) => {
     //place 를 기준으로 관광지 테이블에서 해당 장소를 검색하고 중심좌표로 변경
     try {
         const result = await TourPlace.findOne({
-            include: [TourLocation],
             where: { name: place },
             raw: true
         });
@@ -26,17 +28,55 @@ router.post('/', async (req, res, next) => {
         //result에 연관된 TourSubPlace 의 위도,경도 값 가져오기
         const subPlace = await TourSubPlace.findAll({
             where: { TourPlaceId: result.id },
-            attributes: ['latitude', 'longitude'],
+            attributes: ['id', 'latitude', 'longitude'],
             raw: true
-        })
+        });
 
         console.log(subPlace);
 
-        //result에 해당하는 Location 정보 다 가져오기
+        let member = [];
+        let totalMem = [];
+        const findLoc = await Location.findAll({
+            include: [{
+                model: TourLocation,
+                where: { TourPlaceId: result.id }
+            }],
+            attribute: ['latitude', 'longitude', 'UserId'],
+            order: ['UserId'],
+            raw: true
+        }).then(el => {
+            let userid = el[0].UserId;
+            for (let i = 0; i < el.length; i++) {
+                if (userid == el[i].UserId) {
+                    member.push({ latitude: el[i].latitude, longitude: el[i].longitude });
+                    if (i == el.length - 1) totalMem.push(member);
+                } else {
+                    totalMem.push(member);
+                    userid = el[i].UserId;
+                    member = [];
+                    member.push({ latitude: el[i].latitude, longitude: el[i].longitude });
+                }
+            }
+        });
 
-        //subPlace: subPlace
 
-        res.render('map', { latitude: result.latitude, longitude: result.longitude, subPlace: subPlace });
+        //Location에서 TourSubPlace의 id 별로 가져와서 user 로 정렬해서 가져옴
+        let subPlaceId = subPlace.map(el => el.id);
+        for (let i = 0; i < subPlaceId.length; i++) {
+            const allLoc = await Location.findAll({
+                include: [{
+                    model: TourSubLocation,
+                    where: { TourSubPlaceId: subPlaceId[i] },
+                }],
+                order: ['UserId'],
+                raw: true
+            });
+            console.log(allLoc);
+        };
+
+
+        console.log(totalMem);
+        res.render('map', { latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem });
 
     } catch (err) {
         console.error(err);
