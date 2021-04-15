@@ -1,6 +1,7 @@
 const express = require('express');
 const Location = require('../models/location');
 const User = require('../models/user');
+const Time = require('../models/time');
 const TourLocation = require('../models/tourlocation');
 const TourPlace = require('../models/tourplace');
 const TourSubPlace = require('../models/toursubplace');
@@ -28,8 +29,7 @@ router.post('/', async (req, res, next) => {
         //result에 연관된 TourSubPlace 의 위도,경도 값 가져오기
         const subPlace = await TourSubPlace.findAll({
             where: { TourPlaceId: result.id },
-            attributes: ['id', 'latitude', 'longitude'],
-            raw: true
+            attributes: ['id', 'latitude', 'longitude', 'name'],
         });
 
         console.log(subPlace);
@@ -73,10 +73,25 @@ router.post('/', async (req, res, next) => {
             });
             console.log(allLoc);
         };
-
-
         console.log(totalMem);
-        res.render('map', { latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem });
+
+        let avgTime = [];
+        //머문 시간 평균 구하기
+        for (let i = 0; i < subPlace.length; i++) {
+            console.log(subPlace[i].name);
+            const times = await subPlace[i].getTime();
+            if (times == null) continue;
+
+            const avg = parseInt(times.total / times.count);
+            console.log(avg);
+
+            var time = Math.floor((avg % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            var min = Math.floor((avg % (1000 * 60 * 60)) / (1000 * 60));
+            var sec = Math.floor((avg % (1000 * 60)) / 1000);
+            avgTime.push({ 'name': subPlace[i].name, 'avg': time + "시간 " + min + "분 " + sec + "초" });
+        }
+
+        res.render('map', { latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, avgTime: avgTime });
 
     } catch (err) {
         console.error(err);
