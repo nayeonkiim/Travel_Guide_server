@@ -88,7 +88,7 @@ router.post('/', async (req, res, next) => {
                     const tour = await createLocation.addTourPlace(whichPlace, { transaction: t });
                     console.log("정상적으로 관광지 장소와 연관 맺어주기 완료");
 
-                    
+
                     //sub 관광 존재하면 연관관계 맺어주기
                     if (Object.keys(whichSubPlace).length != null || Object.keys(whichSubPlace).length != undefined) {
                         const subPlace = await createLocation.addTourSubPlace(whichSubPlace, { transaction: t });
@@ -287,10 +287,10 @@ router.get('/reload/:title/:date', async (req, res, next) => {
             raw: true
         });
         const id = users.filter(user => user.role == 'member').map(user => user.id);
-        const userId = users.filter(user => user.role == 'member').map(user => user.userId);
+        const usersId = users.filter(user => user.role == 'member').map(user => user.userId);
 
         console.log(id);
-        console.log(userId);
+        console.log(usersId);
 
         let curLoc = [];
         for (let i = 0; i < id.length; i++) {
@@ -301,9 +301,11 @@ router.get('/reload/:title/:date', async (req, res, next) => {
                 attributes: ['latitude', 'longitude'],
                 raw: true
             });
-
-            location.userId = userId[i];
-            curLoc.push(location);
+            if (location != null) {
+                console.log(location);
+                location.userId = usersId[i];
+                curLoc.push(location);
+            }
         }
 
         console.log(curLoc);
