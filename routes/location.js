@@ -157,30 +157,43 @@ router.get('/:title', async (req, res, next) => {
             });
 
         console.log("userMap.length: " + userMap.length);
-        let timeSentArr = [];
 
+        let timeSentArr = [];
         //user 별로 방문한 공간과 
         for (let i = 0; i < userMap.length; i++) {
 
             console.log(userMap[i]);
             //해당 user가 방문한 장소 조회
-            let todayVisit = await Location.findAll({
+            const todayVisit = await Location.findAll({
+                include: [{
+                    model: TourSubLocation,
+                    where: { id: { ne: null } },
+                    attributes: ['TourSubPlaceId']
+                }],
                 where: { date: today, UserId: userMap[i] },
-                // attributes: ['id', 'date', 'time', 'latitude', 'longitude'],
+                attributes: ['id', 'date', 'time', 'latitude', 'longitude'],
                 order: ['id'],
-                //raw: true
+                raw: true
             });
-            const subPlace = await todayVisit.getTourSubLocation();
-            console.log(todayVisit);
-            console.log(subPlace);
+
+            //{userId, TourSubPlaceId} 배열로 저장해주기
+            for (let j = 0; j < todayVisit.length; j++) {
+                let string = JSON.stringify(todayVisit[j]);
+                let arr_st = string.split(',');
+                let last = arr_st[arr_st.length - 1]
+                last = last.split(':');
+                let last2 = parseInt(last[last.length - 1].substr(0, 1));
+                timeSentArr.push({ 'userId': todayVisit[j].id, 'TourSubPlaceId': last2 });
+            }
+            console.log(timeSentArr);
 
             //방문 기록이 없는 경우 다음 user의 방문 기록 탐색
-            if (todayVisit.length == 0)
-                continue;
+            // if (todayVisit.length == 0)
+            //     continue;
 
-            //subPlace에 방문한 기록있는 location id만 추출    
-            let id = todayVisit.map(el => el.id);
-            console.log(id);
+            // //subPlace에 방문한 기록있는 location id만 추출    
+            // let id = todayVisit.map(el => el.id);
+            // console.log(id);
 
 
             // let time = todayVisit.map(el => el.time);
@@ -276,6 +289,7 @@ router.get('/reload/:title/:date', async (req, res, next) => {
         const userId = users.filter(user => user.role == 'member').map(user => user.userId);
 
         console.log(id);
+        console.log(userId);
 
         let curLoc = [];
         for (let i = 0; i < id.length; i++) {
