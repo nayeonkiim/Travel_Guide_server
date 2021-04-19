@@ -9,6 +9,7 @@ const Location = require('../models/location');
 const TourPlace = require('../models/tourplace');
 const Time = require('../models/time');
 const { Op } = require("sequelize");
+const common = require('../lib/common');
 
 
 router.post('/', async (req, res, next) => {
@@ -131,25 +132,14 @@ router.post('/', async (req, res, next) => {
         let approve = { "approve": "ok" };
         try {
             //title로 groupId 구하기
-            const groupId = await Group.findOne({
-                where: { title }
-            })
-                .then(async (groupId) => {
-                    //그룹이 존재한다면 그룹의 멤버들의 id 조회
-                    if (groupId) {
-                        const users = await groupId.getUsers({
-                            attributes: ['id', 'role'],
-                            raw: true,
-                            nest: true
-                        }).then(users => {
-
-                            for (let i = 0; i < users.length; i++) {
-                                if (users[i].role != 'manager') {
-                                    userMap.push(users[i].id);
-                                }
-                            }
-                        });
+            const result = common.findMem(title)
+                .then(users => {
+                    for (let i = 0; i < users.length; i++) {
+                        if (users[i].role != 'manager') {
+                            userMap.push(users[i].id);
+                        }
                     }
+
                 });
 
             console.log("userMap " + userMap);
@@ -246,15 +236,8 @@ router.get('/reload/:title/:date', async (req, res, next) => {
     const date = req.params.date;
 
     try {
-        //그룹 멤버 조회하기
-        const groupId = await Group.findOne({
-            where: { title }
-        });
-        //멤버들만 가져오기
-        const users = await groupId.getUsers({
-            attributes: ['id', 'role', 'userId'],
-            raw: true
-        });
+
+        const users = await common.findMem(title);
         const id = users.filter(user => user.role == 'member').map(user => user.id);
         const usersId = users.filter(user => user.role == 'member').map(user => user.userId);
 
@@ -292,58 +275,5 @@ router.get('/reload/:title/:date', async (req, res, next) => {
     }
 });
 
-
-router.get('/reload/:title/:date', async (req, res, next) => {
-    console.log('멤버 실시간 위치 조회 라우터 호출됨');
-    const title = req.params.title;
-    const date = req.params.date;
-
-    try {
-        //그룹 멤버 조회하기
-        const groupId = await Group.findOne({
-            where: { title }
-        });
-        //멤버들만 가져오기
-        const users = await groupId.getUsers({
-            attributes: ['id', 'role', 'userId'],
-            raw: true
-        });
-        const id = users.filter(user => user.role == 'member').map(user => user.id);
-        const usersId = users.filter(user => user.role == 'member').map(user => user.userId);
-
-        console.log(id);
-        console.log(usersId);
-
-        let curLoc = [];
-        for (let i = 0; i < id.length; i++) {
-            console.log(id[i]);
-            let location = await Location.findOne({
-                where: { UserId: id[i], date },
-                order: [['time', 'DESC']],
-                attributes: ['latitude', 'longitude'],
-                raw: true
-            });
-            if (location != null) {
-                console.log(location);
-                location.userId = usersId[i];
-                curLoc.push(location);
-            }
-        }
-
-        console.log(curLoc);
-        let approve = { 'approve': 'fail' };
-        if (curLoc.length < 0) {
-            return res.status(500).json(approve);
-        } else {
-            approve.approve = 'ok';
-            approve.curLoc = curLoc;
-            return res.status(200).json(approve);
-        }
-
-    } catch (err) {
-        console.error(err);
-        next(err);
-    }
-});
 
 module.exports = router;
