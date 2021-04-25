@@ -42,38 +42,42 @@ router.post('/', async (req, res, next) => {
                 where: { TourPlaceId: result.id }
             }],
             attribute: ['latitude', 'longitude', 'UserId'],
-            order: ['UserId', 'time'],
+            order: ['UserId', 'time', 'date'],
             raw: true
+
         }).then(el => {
             let userid = el[0].UserId;
+            let beforeDate = el[0].date;
             for (let i = 0; i < el.length; i++) {
-                if (userid == el[i].UserId) {
+                if (userid == el[i].UserId && el[i].date === beforeDate) {
                     member.push({ latitude: el[i].latitude, longitude: el[i].longitude });
                     if (i == el.length - 1) totalMem.push(member);
                 } else {
                     totalMem.push(member);
                     userid = el[i].UserId;
+                    beforeDate = el[i].date;
                     member = [];
                     member.push({ latitude: el[i].latitude, longitude: el[i].longitude });
                 }
             }
         });
-
+        console.log(totalMem);
 
         //Location에서 TourSubPlace의 id 별로 가져와서 user 로 정렬해서 가져옴
-        let subPlaceId = subPlace.map(el => el.id);
-        for (let i = 0; i < subPlaceId.length; i++) {
-            const allLoc = await Location.findAll({
-                include: [{
-                    model: TourSubLocation,
-                    where: { TourSubPlaceId: subPlaceId[i] },
-                }],
-                order: ['UserId'],
-                raw: true
-            });
-            console.log(allLoc);
-        };
-        console.log(totalMem);
+        // let subPlaceId = subPlace.map(el => el.id);
+        // for (let i = 0; i < subPlaceId.length; i++) {
+        //     const allLoc = await Location.findAll({
+        //         include: [{
+        //             model: TourSubLocation,
+        //             where: { TourSubPlaceId: subPlaceId[i] },
+        //         }],
+        //         order: ['UserId', 'date'],
+        //         raw: true
+        //     });
+        //     console.log("allLoc");
+        //     console.log(allLoc);
+        // };
+
 
         let avgTime = [];
         //머문 시간 평균 구하기

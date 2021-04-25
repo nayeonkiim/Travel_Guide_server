@@ -28,6 +28,7 @@ router.post('/', async (req, res, next) => {
     if (title == 'undefined' || title == undefined || title == null || title == 'null') {
         console.log(userId);
         try {
+            let nearSubPlace = [];
             //user 정보 조회
             const userInfo = await User.findOne({
                 where: { userId },
@@ -54,7 +55,7 @@ router.post('/', async (req, res, next) => {
             console.log(whichPlace);
 
             //위도,경도(0.002보다 오차범위 작은) 근처 sub 관광지 찾기
-            const whichSubPlace = await TourSubPlace.findOne({
+            const whichSubPlace = await TourSubPlace.findAll({
                 where: {
                     [Op.and]: {
                         TourPlaceId: whichPlace.id,
@@ -71,9 +72,27 @@ router.post('/', async (req, res, next) => {
                             }
                         }
                     }
+                },
+            }).then(place => {
+                let compare = [];
+                let min = 0, minObj = 0;
+                place.forEach(x => {
+                    value = Math.sqrt(Math.pow(latitude - x.latitude, 2) + Math.pow(longitude - x.longitude, 2));
+                    compare.push({ 'id': x.id, 'value': value });
+                });
+                //가까운 거리 찾기
+                min = compare[0].value;
+                minObj = compare[0];
+                for (let i = 1; i < compare.length; i++) {
+                    if (compare[i].value < min) {
+                        min = compare[i].value;
+                        minObj = compare[i];
+                    }
                 }
+                //가장 거리 가까운
+                nearSubPlace.push(minObj.id);
             });
-            console.log(whichSubPlace);
+            console.log("가까운 subPlace: " + nearSubPlace);
 
             const result = await sequelize.transaction(async (t) => {
                 if (userInfo != null) {
@@ -93,10 +112,10 @@ router.post('/', async (req, res, next) => {
 
 
                     //sub 관광 존재하면 연관관계 맺어주기
-                    if (whichSubPlace == null || whichSubPlace == undefined) {
+                    if (nearSubPlace == null || nearSubPlace == undefined) {
                         console.log('관광지 안의 sub 관광지에 있지 않습니다.');
                     } else {
-                        const subPlace = await createLocation.addTourSubPlace(whichSubPlace, { transaction: t });
+                        const subPlace = await createLocation.addTourSubPlace(nearSubPlace, { transaction: t });
                         console.log('관광지 안의 sub 관광지에 있습니다.');
                     }
 
