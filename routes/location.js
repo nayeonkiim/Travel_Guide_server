@@ -151,17 +151,14 @@ router.post('/', async (req, res, next) => {
         let approve = { "approve": "ok" };
         try {
             //title로 groupId 구하기
-            const result = common.findMem(title)
-                .then(users => {
-                    for (let i = 0; i < users.length; i++) {
-                        if (users[i].role != 'manager') {
-                            userMap.push(users[i].id);
-                        }
-                    }
-
-                });
-
-            console.log("userMap " + userMap);
+            const result = await common.findMem(title);
+            console.log(result[0]);
+            for (let i = 0; i < result.length; i++) {
+                if (result[i].role != 'manager') {
+                    userMap.push(result[i].id);
+                }
+            }
+            console.log(userMap);
 
             let timeSentArr = [];
             let timeSentTotalArr = [];
@@ -181,11 +178,13 @@ router.post('/', async (req, res, next) => {
 
                     for (let k = 0; k < result.length; k++) {
                         if (result[k].length == 0) continue;
+                        console.log(result[k]);
                         let string = JSON.stringify(result[k]);
+
                         let arr_st = string.split(',');
                         let last = arr_st[1];
                         last = last.split(':');
-                        let selecttime = { 'toursubplaceid': result[k].id, 'time': last[1].split(1) + ':' + last[2] + ':' + last[3], 'userId': userMap[i] };
+                        let selecttime = { 'toursubplaceid': result[k].id, 'time': last[1].substr(1) + ':' + last[2] + ':' + last[3].substr(0, last[3].length - 1), 'userId': userMap[i] };
 
                         if (k == 0) {
                             timeSentArr.push(selecttime);
@@ -193,54 +192,56 @@ router.post('/', async (req, res, next) => {
                         } else {
                             if (result[k].id == idx) {
                                 timeSentArr.push(selecttime);
-                                if (k == result.length - 1) {
-                                    timeSentTotalArr.push(timeSentArr);
-                                    timeSentArr = [];
-                                }
                             } else {
                                 timeSentTotalArr.push(timeSentArr);
                                 timeSentArr = [];
                                 timeSentArr.push(selecttime);
                                 idx = result[k].id;
                             }
+
+                            if (k == result.length - 1) {
+                                timeSentTotalArr.push(timeSentArr);
+                                timeSentArr = [];
+                            }
                         }
                     }
+                    timeSentArr = [];
                 });
             }
-
             console.log(timeSentTotalArr);
+
             let count = 0;
             let arr_curId = [];
             let spent = 0;
             //맨처음, 맨끝 시간 차이 저장하기
             for (let t = 0; t < timeSentTotalArr.length; t++) {
                 console.log(t);
-                var startdate = new Date(today + " " + timeSentTotalArr[t][0].time.substring(1, timeSentTotalArr[t][0].time.length - 1));
-                var lastdate = new Date(today + " " + timeSentTotalArr[t][timeSentTotalArr[t].length - 1].time.substring(1, timeSentTotalArr[t][timeSentTotalArr[t].length - 1].time.length - 1));
+                var startdate = new Date(today + " " + timeSentTotalArr[t][0].time);
+                var lastdate = new Date(today + " " + timeSentTotalArr[t][timeSentTotalArr[t].length - 1].time);
                 console.log("startdate : " + startdate);
                 console.log("lastdate : " + lastdate);
                 var spend = lastdate - startdate;
-                spent += spend;
-                console.log(spend);
 
-                for (let tt = 0; tt < timeSentTotalArr[t].length; tt++) {
-                    if (!arr_curId.includes(timeSentTotalArr[t][tt].userId)) {
-                        count += 1;
-                        arr_curId.push(timeSentTotalArr[t][tt].userId);
-                    }
+                //보낸 시간 만큼 해당 time 테이블에 업데이트 해주기
+                const subPlaceExist = await Time.findOne({
+                    where: { TourSubPlaceId: timeSentTotalArr[t][0].toursubplaceid }
+                });
+                //subPlace에 대한 컬럼 없으면 생성
+                if (subPlaceExist == null) {
+                    const time = await Time.create({
+                        total: spend,
+                        count: 1,
+                        TourSubPlaceId: timeSentTotalArr[t][0].toursubplaceid
+                    });
+                } else {
+                    const time = await Time.update({
+                        total: subPlaceExist.total + spend,
+                        count: subPlaceExist.count + 1
+                    }, {
+                        where: { TourSubPlaceId: timeSentTotalArr[t][0].toursubplaceid }
+                    })
                 }
-                console.log(arr_curId);
             }
-
-            let toursubid = timeSentTotalArr[0][0].toursubplaceid;
-
-            const time = await Time.create({
-                total: spent,
-                count: arr_curId.length,
-                TourSubPlaceId: toursubid
-            });
-
-
             return res.status(500).json(approve);
         } catch (err) {
             console.error(err);
