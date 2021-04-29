@@ -103,7 +103,7 @@ router.post('/', async (req, res, next) => {
             avgTime.push({ 'name': subPlace[i].name, 'avg': time + "시간 " + min + "분 " + sec + "초" });
         }
 
-        res.render('map', { latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, avgTime: avgTime });
+        res.render('map', { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, avgTime: avgTime });
 
     } catch (err) {
         console.error(err);
@@ -156,5 +156,52 @@ router.post('/addPlace', async (req, res, next) => {
         next();
     }
 })
+
+router.post('/ages', async (req, res, next) => {
+    const place = req.body.place;
+    const age = parseInt(req.body.age);
+    let data = [];
+
+    //tourplace에 대한 toursubplace 찾기
+    let findPlaceId = await TourPlace.findOne({
+        where: { name: place }
+    });
+    console.log(findPlaceId);
+    //toursubplace 가져오기
+    const subPlaces = await findPlaceId.getTourSubPlaces();
+
+    //toursubplace의 id만 저장, name만 저장
+    const ids = subPlaces.map(s => parseInt(s.id));
+    const name = subPlaces.map(s => s.name);
+
+    for (let i = 0; i < ids.length; i++) {
+        //time 테이블에서 toursubplace의 id만 조회
+        const time = await Time.findAll({
+            where: { TourSubPlaceId: ids[i] }
+        });
+
+        if (time.length == 0) continue;
+
+        let ageCountId = time.map(t => t.UserId);
+        let count = 0;
+        for (let i = 0; i < ageCountId.length; i++) {
+            const getAge = await User.findOne({
+                where: { id: ageCountId[i] },
+                attributes: ['birth'],
+                raw: true
+            });
+
+            const now = new Date();	// 현재 날짜 및 시간
+            const year = now.getFullYear();	// 연도
+            const finalAge = parseInt(year) - parseInt(getAge.birth.substr(0, 4)) + 1;
+            if (finalAge >= age && finalAge < age + 10) {
+                count += 1;
+            }
+        }
+        data.push({ 'name': name[i], 'count': count });
+    }
+    console.log(data);
+    res.json(data);
+});
 
 module.exports = router;

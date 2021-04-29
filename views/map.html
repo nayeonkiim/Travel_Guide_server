@@ -3,16 +3,27 @@
 <head>
     <meta charset="utf-8">
     <title>좌표로 주소를 얻어내기</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="//code.jquery.com/jquery-1.11.0.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/css/style.css" />
     <style>
         .map_wrap {
             position: relative;
-            width: 100%;
+            width: 60%;
             height: 350px;
+            float: right;
+        }
+
+        .map_right_wrap {
+            display: inline-block;
+            margin-left: 10px;
         }
 
         .title {
             font-weight: bold;
             display: block;
+            margin-bottom: 15px;
         }
 
         .hAddr {
@@ -39,11 +50,11 @@
             white-space: nowrap;
         }
     </style>
-    <script src="//code.jquery.com/jquery-1.11.0.js"></script>
+
 </head>
 
 <body>
-    <div>간단한 map 웹 표시하기</div>
+    <input type="hidden" id="place" value={{place}}>
     <input type="hidden" id="latitude" value={{latitude}}>
     <input type="hidden" id="longitude" value={{longitude}}>
     {% for sub in subPlace %}
@@ -66,7 +77,23 @@
             <p>{{avg.name}} {{avg.avg}}</p>
             {% endfor %}
         </div>
-
+    </div>
+    <div class="map_right_wrap">
+        <button onclick="select('20')">
+            20대
+        </button>
+        <button onclick="select('30')">
+            30대
+        </button>
+        <button onclick="select('40')">
+            40대
+        </button>
+        <button onclick="select('50')">
+            50대
+        </button>
+        <button onclick="select(60)">
+            60대이상
+        </button>
     </div>
 
     <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=인증키"></script>
@@ -148,6 +175,50 @@
             linePath = [];
         }
 
+        var dataArr = [];
+        function select(category) {
+            var place = document.getElementById("place").value;
+            const fordata = { 'place': place, 'age': category };
+            axios.post('/map/ages', fordata)
+                .then((res) => {
+                    dataArr = [];
+                    for (let i = 0; i < res.data.length; i++) {
+                        if (res.data[i].count != 0) {
+                            //name, count
+                            dataArr.push({ 'count': res.data[i].count, 'category': category, 'name': res.data[i].name })
+                        }
+                    }
+                }).then((res) => {
+                    console.log(dataArr);
+                    render(dataArr);
+                })
+        }
+
+        function render(dataArr) {
+            console.log("render: " + dataArr);
+            d3.select("body").selectAll("div.h-bar") // <-B
+                .data(dataArr)
+                .enter()
+                .append("div")
+                .attr("class", "h-bar")
+                .append("span");
+
+            d3.select("body").selectAll("div.h-bar") // <-C
+                .data(dataArr)
+                .exit().remove();
+
+            d3.select("body").selectAll("div.h-bar") // <-D
+                .data(dataArr)
+                .attr("class", "h-bar")
+                .style("width", function (d) {
+                    return (d.count * 50) + "px";
+                }
+                )
+                .select("span")
+                .text(function (d) {
+                    return d.name;
+                });
+        }
     </script>
 </body>
 
