@@ -3,14 +3,10 @@ const Sequelize = require('sequelize');
 module.exports = class Time extends Sequelize.Model {
     static init(sequelize) {
         return super.init({
-           total: {
+            total: {
                 type: Sequelize.INTEGER,
                 allowNull: false
-           },
-           count: {
-                type: Sequelize.INTEGER,
-                allowNull: false
-           },
+            },
         }, {
             sequelize,
             timestamps: false,
@@ -25,5 +21,6 @@ module.exports = class Time extends Sequelize.Model {
 
     static associate(db) {
         db.Time.belongsTo(db.TourSubPlace);
+        db.Time.belongsTo(db.User);
     }
 }

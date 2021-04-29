@@ -36,6 +36,7 @@ router.post('/', async (req, res, next) => {
 
         let member = [];
         let totalMem = [];
+        //입력한 관광지에 다녀간 user 모두 select
         const findLoc = await Location.findAll({
             include: [{
                 model: TourLocation,
@@ -46,6 +47,7 @@ router.post('/', async (req, res, next) => {
             raw: true
 
         }).then(el => {
+            //id, 날짜 별로 배열에 저장
             let userid = el[0].UserId;
             let beforeDate = el[0].date;
             for (let i = 0; i < el.length; i++) {
@@ -83,10 +85,16 @@ router.post('/', async (req, res, next) => {
         //머문 시간 평균 구하기
         for (let i = 0; i < subPlace.length; i++) {
             console.log(subPlace[i].name);
-            const times = await subPlace[i].getTime();
-            if (times == null) continue;
+            const times = await Time.findAll({
+                where: { TourSubPlaceId: subPlace[i].id }
+            });
 
-            const avg = parseInt(times.total / times.count);
+            if (times == undefined || times == null || times == 0) continue;
+            //동일한 subPlace 시간 합산
+            let totalTime = times.map(t => t.total).reduce((a, b) => a + b, 0);
+            let totalCount = times.length
+
+            const avg = parseInt(totalTime / totalCount);
             console.log(avg);
 
             var time = Math.floor((avg % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));

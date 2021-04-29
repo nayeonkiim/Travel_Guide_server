@@ -50,5 +50,6 @@ module.exports = class User extends Sequelize.Model {
         db.User.belongsToMany(db.Group, { through: db.UserGroup });
         db.User.hasOne(db.Token);
         db.User.hasMany(db.Location);
+        db.User.hasMany(db.Time);
     }
 }

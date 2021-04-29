@@ -215,32 +215,19 @@ router.post('/', async (req, res, next) => {
             let spent = 0;
             //맨처음, 맨끝 시간 차이 저장하기
             for (let t = 0; t < timeSentTotalArr.length; t++) {
-                console.log(t);
                 var startdate = new Date(today + " " + timeSentTotalArr[t][0].time);
                 var lastdate = new Date(today + " " + timeSentTotalArr[t][timeSentTotalArr[t].length - 1].time);
                 console.log("startdate : " + startdate);
                 console.log("lastdate : " + lastdate);
                 var spend = lastdate - startdate;
-
-                //보낸 시간 만큼 해당 time 테이블에 업데이트 해주기
-                const subPlaceExist = await Time.findOne({
-                    where: { TourSubPlaceId: timeSentTotalArr[t][0].toursubplaceid }
-                });
+                console.log("spend: " + spend);
                 //subPlace에 대한 컬럼 없으면 생성
-                if (subPlaceExist == null) {
-                    const time = await Time.create({
-                        total: spend,
-                        count: 1,
-                        TourSubPlaceId: timeSentTotalArr[t][0].toursubplaceid
-                    });
-                } else {
-                    const time = await Time.update({
-                        total: subPlaceExist.total + spend,
-                        count: subPlaceExist.count + 1
-                    }, {
-                        where: { TourSubPlaceId: timeSentTotalArr[t][0].toursubplaceid }
-                    })
-                }
+
+                const time = await Time.create({
+                    total: spend,
+                    UserId: timeSentTotalArr[t][0].userId,
+                    TourSubPlaceId: timeSentTotalArr[t][0].toursubplaceid
+                });
             }
             return res.status(500).json(approve);
         } catch (err) {
