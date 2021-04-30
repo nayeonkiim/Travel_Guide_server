@@ -60,7 +60,9 @@
     {% for sub in subPlace %}
     <input type="hidden" name="subPlaceLat" value={{sub.latitude}}>
     <input type="hidden" name="subPlaceLong" value={{sub.longitude}}>
+    <input type="hidden" id="subPlaceName" name="subPlaceName" value={{sub.name}}>
     {% endfor %}
+
 
     {% for mem in totalMem %}
     <div name="memLoc" id={{loop.index}}>
@@ -79,24 +81,16 @@
         </div>
     </div>
     <div class="map_right_wrap">
-        <button onclick="select('20')">
-            20대
+        {% for sub in subPlace %}
+        <button onclick="select(`{{sub.name}}`)">
+            {{sub.name}}
         </button>
-        <button onclick="select('30')">
-            30대
-        </button>
-        <button onclick="select('40')">
-            40대
-        </button>
-        <button onclick="select('50')">
-            50대
-        </button>
-        <button onclick="select(60)">
-            60대이상
-        </button>
+        {% endfor %}
     </div>
+    <div id="feature_sel"></div>
 
-    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=인증키"></script>
+    <script type="text/javascript"
+        src="//dapi.kakao.com/v2/maps/sdk.js?appkey=1e6d88f8e7b7eff69bd8140bfbb9b097&libraries=services"></script>
 
     <script>
         var latitude = document.getElementById("latitude").value;
@@ -104,6 +98,8 @@
         var array_subPlaceLat = document.getElementsByName("subPlaceLat");
         var array_subPlaceLong = document.getElementsByName("subPlaceLong");
         var array_memLoc = document.getElementsByName("memLoc");
+        var firstSubPlace = document.getElementsByName("subPlaceName")[0];
+        console.log(firstSubPlace.value);
         //var array_memLati = document.getElementsByName("memLati");
         //var array_memLong = document.getElementsByName("memLong");
 
@@ -175,27 +171,54 @@
             linePath = [];
         }
 
-        var dataArr = [];
+        var dataArr = [ // <-A
+            { count: 0 },
+            { count: 0 },
+            { count: 0 },
+            { count: 0 },
+            { count: 0 },
+            { count: 0 }
+        ];
+
         function select(category) {
-            var place = document.getElementById("place").value;
-            const fordata = { 'place': place, 'age': category };
+            const fordata = { 'subPlace': category };
             axios.post('/map/ages', fordata)
                 .then((res) => {
-                    dataArr = [];
+                    console.log("dataArr: " + dataArr);
                     for (let i = 0; i < res.data.length; i++) {
-                        if (res.data[i].count != 0) {
-                            //name, count
-                            dataArr.push({ 'count': res.data[i].count, 'category': category, 'name': res.data[i].name })
+                        console.log(res.data[i].age);
+                        if (res.data[i].age >= 20 && res.data[i].age < 30) {
+                            dataArr[0].count += 1;
+                            dataArr[0].category = "20대";
+                        } else if (res.data[i].age >= 30 && res.data[i].age < 40) {
+                            dataArr[1].count += 1;
+                            dataArr[1].category = "30대"
+                        } else if (res.data[i].age >= 40 && res.data[i].age < 50) {
+                            dataArr[2].count += 1;
+                            dataArr[2].category = "40대";
+                        } else if (res.data[i].age >= 50 && res.data[i].age < 60) {
+                            dataArr[3].count += 1;
+                            dataArr[3].category = "50대";
+                        } else if (res.data[i].age >= 60 && res.data[i].age < 70) {
+                            dataArr[4].count += 1;
+                            dataArr[4].category = "60대";
+                        } else {
+                            dataArr[5].count += 1;
+                            dataArr[5].category = "70대이상";
                         }
                     }
                 }).then((res) => {
                     console.log(dataArr);
                     render(dataArr);
+                }).then((res) => {
+                    for (let k = 0; k < dataArr.length; k++) {
+                        dataArr[k].count = 0;
+                        dataArr[k].category = "";
+                    }
                 })
         }
 
         function render(dataArr) {
-            console.log("render: " + dataArr);
             d3.select("body").selectAll("div.h-bar") // <-B
                 .data(dataArr)
                 .enter()
@@ -211,14 +234,15 @@
                 .data(dataArr)
                 .attr("class", "h-bar")
                 .style("width", function (d) {
-                    return (d.count * 50) + "px";
+                    return (d.count * 20) + "px";
                 }
                 )
                 .select("span")
                 .text(function (d) {
-                    return d.name;
+                    return d.category;
                 });
         }
+
     </script>
 </body>
 

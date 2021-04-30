@@ -158,47 +158,37 @@ router.post('/addPlace', async (req, res, next) => {
 })
 
 router.post('/ages', async (req, res, next) => {
-    const place = req.body.place;
-    const age = parseInt(req.body.age);
+    const subPlace = req.body.subPlace;
+    console.log(req.body);
     let data = [];
-
-    //tourplace에 대한 toursubplace 찾기
-    let findPlaceId = await TourPlace.findOne({
-        where: { name: place }
+    //subPlace의 id 구하기
+    const tourId = await TourSubPlace.findOne({
+        where: { name: subPlace },
+        attributes: ['id'],
+        raw: true
     });
-    console.log(findPlaceId);
-    //toursubplace 가져오기
-    const subPlaces = await findPlaceId.getTourSubPlaces();
+    console.log(tourId);
 
-    //toursubplace의 id만 저장, name만 저장
-    const ids = subPlaces.map(s => parseInt(s.id));
-    const name = subPlaces.map(s => s.name);
+    //subPlace에 대한 time만 가져오기
+    const time = await Time.findAll({
+        where: { TourSubPlaceId: tourId.id }
+    });
 
-    for (let i = 0; i < ids.length; i++) {
-        //time 테이블에서 toursubplace의 id만 조회
-        const time = await Time.findAll({
-            where: { TourSubPlaceId: ids[i] }
+    //UserId 가져오기
+    let ageCountId = time.map(t => t.UserId);
+    for (let i = 0; i < ageCountId.length; i++) {
+        const getAge = await User.findOne({
+            where: { id: ageCountId[i] },
+            attributes: ['birth', 'gender'],
+            raw: true
         });
 
-        if (time.length == 0) continue;
+        const now = new Date();	// 현재 날짜 및 시간
+        const year = now.getFullYear();	// 연도
+        const realAge = parseInt(year) - parseInt(getAge.birth.substr(0, 4)) + 1;
+        const final = realAge / 10 * 10;
 
-        let ageCountId = time.map(t => t.UserId);
-        let count = 0;
-        for (let i = 0; i < ageCountId.length; i++) {
-            const getAge = await User.findOne({
-                where: { id: ageCountId[i] },
-                attributes: ['birth'],
-                raw: true
-            });
-
-            const now = new Date();	// 현재 날짜 및 시간
-            const year = now.getFullYear();	// 연도
-            const finalAge = parseInt(year) - parseInt(getAge.birth.substr(0, 4)) + 1;
-            if (finalAge >= age && finalAge < age + 10) {
-                count += 1;
-            }
-        }
-        data.push({ 'name': name[i], 'count': count });
+        data.push({ 'subPlace': subPlace, 'age': final, 'gender': getAge.gender });
     }
     console.log(data);
     res.json(data);
