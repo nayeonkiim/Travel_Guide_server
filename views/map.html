@@ -89,8 +89,7 @@
     </div>
     <div id="feature_sel"></div>
 
-    <script type="text/javascript"
-        src="//dapi.kakao.com/v2/maps/sdk.js?appkey=인증키"></script>
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=인증키"></script>
 
     <script>
         var latitude = document.getElementById("latitude").value;
@@ -218,69 +217,57 @@
                 })
         }
 
+        var width = 500;
+        var height = 500;
+
+        var color = d3.scale
+            .linear()
+            .domain([0, 60])
+            .range(["red", "blue"]);
+
+        var witdhScale = d3.scale
+            .linear()
+            .domain([0, 60])
+            .range([0, width - 20]);
+
+        var axis = d3.svg.axis().scale(witdhScale);
+
+        var canvas = d3.select("body").append("svg").attr("width", width).attr("height", height).append("g").attr("transform", "translate(10, 20)");
+
         function render(dataArr) {
-            var width = 500;
-            var height = 500;
-
-            var color = d3.scale
-                .linear()
-                .domain([0, 60])
-                .range(["red", "blue"]);
-
-            var witdhScale = d3.scale
-                .linear()
-                .domain([0, 60])
-                .range([0, width - 20]);
-
-
-            var axis = d3.svg.axis().scale(witdhScale);
-
-            var canvas = d3.select("body").append("svg").attr("width", width).attr("height", height).append("g").attr("transform", "translate(10, 20)");
-
-            var bars = canvas.selectAll("rect")
+            canvas.selectAll("rect")
                 .data(dataArr)
                 .enter()
                 .append("rect")
+
+            canvas.selectAll("rect")
+                .data(dataArr)
+                .exit().remove();
+
+            canvas.selectAll("rect")
                 .attr("width", function (d) {
                     return witdhScale(d.count);
                 })
                 .attr('height', 50)
                 .attr("fill", function (d) {
-                    return color(d);
+                    return color(d.count);
                 })
                 .attr('y', function (d, i) {
                     return i * 60
                 })
-                .select(rect)
-                .text(function (d) {
-                    return d.category;
-                });
+
+            canvas.data(dataArr)
+                .append("text")
+
+            canvas.selectAll("text")
+                .data(dataArr)
+                .exit().remove()
+
+            canvas.selectAll("text")
+                .attr("dy", ".35em")
+                .text(function (d) { return d.category });
 
             canvas.append("g").attr("transform", "translate(0, 300)").call(axis);
-
-
-            //     d3.select("body").selectAll("div.h-bar") // <-B
-            //         .data(dataArr)
-            //         .enter()
-            //         .append("div")
-            //         .attr("class", "h-bar")
-            //         .append("span");
-
-            //     d3.select("body").selectAll("div.h-bar") // <-C
-            //         .data(dataArr)
-            //         .exit().remove();
-
-            //     d3.select("body").selectAll("div.h-bar") // <-D
-            //         .data(dataArr)
-            //         .attr("class", "h-bar")
-            //         .style("width", function (d) {
-            //             return (d.count * 20) + "px";
-            //         }
-            //         )
-            //         .select("span")
-            //         .text(function (d) {
-            //             return d.category;
-            //         });
         }
 
     </script>
