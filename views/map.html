@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>좌표로 주소를 얻어내기</title>
-    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://d3js.org/d3.v3.min.js"></script>
     <script src="//code.jquery.com/jquery-1.11.0.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <link rel="stylesheet" type="text/css" href="/css/style.css" />
@@ -90,7 +90,7 @@
     <div id="feature_sel"></div>
 
     <script type="text/javascript"
-        src="//dapi.kakao.com/v2/maps/sdk.js?appkey=1e6d88f8e7b7eff69bd8140bfbb9b097&libraries=services"></script>
+        src="//dapi.kakao.com/v2/maps/sdk.js?appkey=인증키"></script>
 
     <script>
         var latitude = document.getElementById("latitude").value;
@@ -219,28 +219,68 @@
         }
 
         function render(dataArr) {
-            d3.select("body").selectAll("div.h-bar") // <-B
+            var width = 500;
+            var height = 500;
+
+            var color = d3.scale
+                .linear()
+                .domain([0, 60])
+                .range(["red", "blue"]);
+
+            var witdhScale = d3.scale
+                .linear()
+                .domain([0, 60])
+                .range([0, width - 20]);
+
+
+            var axis = d3.svg.axis().scale(witdhScale);
+
+            var canvas = d3.select("body").append("svg").attr("width", width).attr("height", height).append("g").attr("transform", "translate(10, 20)");
+
+            var bars = canvas.selectAll("rect")
                 .data(dataArr)
                 .enter()
-                .append("div")
-                .attr("class", "h-bar")
-                .append("span");
-
-            d3.select("body").selectAll("div.h-bar") // <-C
-                .data(dataArr)
-                .exit().remove();
-
-            d3.select("body").selectAll("div.h-bar") // <-D
-                .data(dataArr)
-                .attr("class", "h-bar")
-                .style("width", function (d) {
-                    return (d.count * 20) + "px";
-                }
-                )
-                .select("span")
+                .append("rect")
+                .attr("width", function (d) {
+                    return witdhScale(d.count);
+                })
+                .attr('height', 50)
+                .attr("fill", function (d) {
+                    return color(d);
+                })
+                .attr('y', function (d, i) {
+                    return i * 60
+                })
+                .select(rect)
                 .text(function (d) {
                     return d.category;
                 });
+
+            canvas.append("g").attr("transform", "translate(0, 300)").call(axis);
+
+
+            //     d3.select("body").selectAll("div.h-bar") // <-B
+            //         .data(dataArr)
+            //         .enter()
+            //         .append("div")
+            //         .attr("class", "h-bar")
+            //         .append("span");
+
+            //     d3.select("body").selectAll("div.h-bar") // <-C
+            //         .data(dataArr)
+            //         .exit().remove();
+
+            //     d3.select("body").selectAll("div.h-bar") // <-D
+            //         .data(dataArr)
+            //         .attr("class", "h-bar")
+            //         .style("width", function (d) {
+            //             return (d.count * 20) + "px";
+            //         }
+            //         )
+            //         .select("span")
+            //         .text(function (d) {
+            //             return d.category;
+            //         });
         }
 
     </script>
