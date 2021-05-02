@@ -12,11 +12,13 @@ npm start
 ```
 
 ## 기술 스택
-Node.js & express<br/>
-sequelize & MySQL<br/>
-AWS EC2<br/>
-FireBase token<br/>
-
+* Node.js & express<br/>
+* 데이터베이스: sequelize & MySQL<br/>
+* 서버 구축: AWS EC2<br/>
+* 토큰 저장: FireBase token<br/>
+* 시각화: d3.js
+  * 막대 차트, 선 차트, 표
+ 
 ## 서비스 소개 및 시연
 
 ## database
