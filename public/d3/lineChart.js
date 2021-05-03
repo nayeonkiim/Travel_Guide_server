@@ -1,7 +1,12 @@
-function lineChart() { // <-1A
+var chart = lineChart()
+    .x(d3.scale.linear().domain([20, 70]))
+    .y(d3.scale.linear().domain([0, 10]))
+    .first();
+
+function lineChart() {
     var _chart = {};
 
-    var _width = 600, _height = 300, // <-1B
+    var _width = 600, _height = 300,
         _margins = { top: 30, left: 30, right: 30, bottom: 30 },
         _x, _y,
         _data = [],
@@ -10,17 +15,19 @@ function lineChart() { // <-1A
         _bodyG,
         _line;
 
-    _chart.render = function () { // <-2A
-        if (!_svg) {
-            _svg = d3.select("body").append("svg") // <-2B
-                .attr("height", _height)
-                .attr("width", _width);
 
-            renderAxes(_svg);
+    _svg = d3.select("body")
+        .append("svg")
+        .attr("height", _height)
+        .attr("width", _width);
 
-            defineBodyClip(_svg);
-        }
+    _chart.first = function () {
+        renderAxes(_svg);
+        defineBodyClip(_svg);
+        return _chart;
+    }
 
+    _chart.render = function () {
         renderBody(_svg);
     };
 
@@ -76,7 +83,7 @@ function lineChart() { // <-1A
             .attr("y2", 0);
     }
 
-    function defineBodyClip(svg) { // <-2C
+    function defineBodyClip(svg) {
         var padding = 5;
 
         svg.append("defs")
@@ -89,13 +96,13 @@ function lineChart() { // <-1A
             .attr("height", quadrantHeight());
     }
 
-    function renderBody(svg) { // <-2D
+    function renderBody(svg) {
         if (!_bodyG)
             _bodyG = svg.append("g")
                 .attr("class", "body")
                 .attr("transform", "translate("
                     + xStart() + ","
-                    + yEnd() + ")") // <-2E
+                    + yEnd() + ")")
                 .attr("clip-path", "url(#body-clip)");
 
         renderLines();
@@ -106,13 +113,13 @@ function lineChart() { // <-1A
     //연속된 데이터 배열 렌더링
     function renderLines() {
         //연속된 데이터 배열을 매핑하는 svg:path 만든다.
-        _line = d3.svg.line() //<-4A
+        _line = d3.svg.line() //
             .x(function (d) { return _x(d.x); })
             .y(function (d) { return _y(d.y); });
 
         _bodyG.selectAll("path.line")
             .data(_data)
-            .enter() //<-4B
+            .enter()
             .append("path")
             .style("stroke", function (d, i) {
                 return _colors(i); //<-4C, 이것의 인덱스에 기반을 두는 각 데이터 라인에 대해 다른 색상 설정
@@ -121,14 +128,19 @@ function lineChart() { // <-1A
 
         _bodyG.selectAll("path.line")
             .data(_data)
-            .transition() //<-4D
+            .exit().remove()
+
+        _bodyG.selectAll("path.line")
+            .data(_data)
+            .transition()
             .attr("d", function (d) { return _line(d); });
+
     }
 
     //각 데이터 포인트를 표현하기 위한 svg:circle 요소 집합을 생성하는 유사한 렌더링 로직 수행
     function renderDots() {
         _data.forEach(function (list, i) {
-            _bodyG.selectAll("circle._" + i) //<-4E, 업데이트 모드에서 데이터 라인이 각 업데이트에 의해 부드럽게 움직일 수 있도록 전환 설정
+            _bodyG.selectAll("circle._" + i) //업데이트 모드에서 데이터 라인이 각 업데이트에 의해 부드럽게 움직일 수 있도록 전환 설정
                 .data(list)
                 .enter()
                 .append("circle")
@@ -181,7 +193,7 @@ function lineChart() { // <-1A
     };
 
     //매개변수가 없을 때는 게터로 동작하고 매개변수가 있을 때는 세터처럼 동작
-    _chart.height = function (h) { // <-1C
+    _chart.height = function (h) {
         if (!arguments.length) return _height;
         _height = h;
         return _chart;
@@ -211,12 +223,16 @@ function lineChart() { // <-1A
         return _chart;
     };
 
-    _chart.addSeries = function (series) { // <-1D
+    _chart.addSeries = function (series) {
         _data.push(series);
         return _chart;
     };
 
-    return _chart; // <-1E
+    _chart.deleteSeries = function () {
+        _data = [];
+    }
+
+    return _chart;
 }
 
 var numberOfSeries = 2,
@@ -281,10 +297,6 @@ function update(category) {
             data.push(boyData);
             data.push(girlData);
             console.log(data);
-        }).then((res) => {
-            var chart = lineChart()
-                .x(d3.scale.linear().domain([20, 70]))
-                .y(d3.scale.linear().domain([0, 10]));
 
             data.forEach(function (series) {
                 chart.addSeries(series);
@@ -292,7 +304,9 @@ function update(category) {
             chart.render();
         }).then((res) => {
             data = [];
+            chart.deleteSeries();
         })
+
 }
 
 

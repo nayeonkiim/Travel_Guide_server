@@ -219,3 +219,54 @@ button {
     stroke: none;
     fill: steelblue;
 }
+
+.map_wrap {
+    position: relative;
+    width: 60%;
+    height: 350px;
+    float: right;
+}
+
+.map_right_wrap {
+    display: inline-block;
+    margin-left: 10px;
+}
+
+.title {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 15px;
+}
+
+.hAddr {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    border-radius: 2px;
+    background: #fff;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 1;
+    padding: 5px;
+}
+
+#centerAddr {
+    display: block;
+    margin-top: 2px;
+    font-weight: normal;
+}
+
+.bAddr {
+    padding: 5px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.clicked {
+    color: gold;
+}
+
+.float-right{
+    float: right;
+    margin-left: 10px;
+}
