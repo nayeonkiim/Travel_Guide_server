@@ -115,7 +115,7 @@ router.post('/', async (req, res, next) => {
 
 
                     //sub 관광 존재하면 연관관계 맺어주기
-                    if (nearSubPlace == null || nearSubPlace == undefined) {
+                    if (nearSubPlace == null || nearSubPlace == undefined || nearSubPlace.length == 0) {
                         console.log('관광지 안의 sub 관광지에 있지 않습니다.');
                     } else {
                         const subPlace = await createLocation.addTourSubPlace(nearSubPlace, { transaction: t });
