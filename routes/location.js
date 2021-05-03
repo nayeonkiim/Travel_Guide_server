@@ -80,17 +80,20 @@ router.post('/', async (req, res, next) => {
                     value = Math.sqrt(Math.pow(latitude - x.latitude, 2) + Math.pow(longitude - x.longitude, 2));
                     compare.push({ 'id': x.id, 'value': value });
                 });
-                //가까운 거리 찾기
-                min = compare[0].value;
-                minObj = compare[0];
-                for (let i = 1; i < compare.length; i++) {
-                    if (compare[i].value < min) {
-                        min = compare[i].value;
-                        minObj = compare[i];
+
+                if (compare.length != 0) {
+                    //가까운 거리 찾기
+                    min = compare[0].value;
+                    minObj = compare[0];
+                    for (let i = 1; i < compare.length; i++) {
+                        if (compare[i].value < min) {
+                            min = compare[i].value;
+                            minObj = compare[i];
+                        }
                     }
+                    //가장 거리 가까운
+                    nearSubPlace.push(minObj.id);
                 }
-                //가장 거리 가까운
-                nearSubPlace.push(minObj.id);
             });
             console.log("가까운 subPlace: " + nearSubPlace);
 
