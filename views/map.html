@@ -7,49 +7,6 @@
     <script src="//code.jquery.com/jquery-1.11.0.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <link rel="stylesheet" type="text/css" href="/css/style.css" />
-    <style>
-        .map_wrap {
-            position: relative;
-            width: 60%;
-            height: 350px;
-            float: right;
-        }
-
-        .map_right_wrap {
-            display: inline-block;
-            margin-left: 10px;
-        }
-
-        .title {
-            font-weight: bold;
-            display: block;
-            margin-bottom: 15px;
-        }
-
-        .hAddr {
-            position: absolute;
-            left: 10px;
-            top: 10px;
-            border-radius: 2px;
-            background: #fff;
-            background: rgba(255, 255, 255, 0.8);
-            z-index: 1;
-            padding: 5px;
-        }
-
-        #centerAddr {
-            display: block;
-            margin-top: 2px;
-            font-weight: normal;
-        }
-
-        .bAddr {
-            padding: 5px;
-            text-overflow: ellipsis;
-            overflow: hidden;
-            white-space: nowrap;
-        }
-    </style>
 
 </head>
 
@@ -75,6 +32,23 @@
     <div class="map_wrap">
         <div id="map" style="width:100%;height:650px;position:relative;overflow:hidden;"></div>
         <div>
+            <form>
+                <select class="float-right" id="selectGender">
+                    <option value="">전체</option>
+                    <option value="1">여자</option>
+                    <option value="0">남자</option>
+                </select>
+                <select class="float-right" id="selectAge">
+                    <option value="전체">전체</option>
+                    <option value="20">20대</option>
+                    <option value="30">30대</option>
+                    <option value="40">40대</option>
+                    <option value="50">50대</option>
+                    <option value="60">60대</option>
+                    <option value="70">70대이상</option>
+                </select>
+                <input class="float-right" id="selectGengerAndAge" type="submit">
+            </form>
             {% for avg in avgTime %}
             <p>{{avg.name}} {{avg.avg}}</p>
             {% endfor %}
@@ -82,7 +56,7 @@
     </div>
     <div class="map_right_wrap">
         {% for sub in subPlace %}
-        <button onclick="select(`{{sub.name}}`)">
+        <button class="div2" onclick="select(`{{sub.name}}`)">
             {{sub.name}}
         </button>
         {% endfor %}
@@ -90,13 +64,13 @@
     <div id="container"></div>
     <div class="control-group">
         {% for sub in subPlace %}
-        <button onclick="update(`{{sub.name}}`)">
+        <button class="div3" onclick="update(`{{sub.name}}`)">
             {{sub.name}}
         </button>
         {% endfor %}
     </div>
 
-    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=인증키"></script>
+    <script type="text/javascript" src="인증키"></script>
 
     <script>
         var latitude = document.getElementById("latitude").value;
@@ -106,8 +80,7 @@
         var array_memLoc = document.getElementsByName("memLoc");
         var firstSubPlace = document.getElementsByName("subPlaceName")[0];
         console.log(firstSubPlace.value);
-        //var array_memLati = document.getElementsByName("memLati");
-        //var array_memLong = document.getElementsByName("memLong");
+        var selectGengerAndAge = document.getElementById("selectGengerAndAge");
 
         var mapContainer = document.getElementById('map'), // 지도를 표시할 div 
             mapOption = {
@@ -176,6 +149,51 @@
             polyline.setMap(map);
             linePath = [];
         }
+
+        var div2 = document.getElementsByClassName("div2");
+        var div3 = document.getElementsByClassName("div3");
+
+        //버튼 누르면 색 변경
+        function handleClick(event, name) {
+            console.log(event.target);  //누른 버튼 자체가 출력된다.
+            if (event.target.classList[1] === "clicked") {
+                event.target.classList.remove("clicked");
+            } else {
+                console.log(name);
+                for (var i = 0; i < name.length; i++) {
+                    name[i].classList.remove("clicked");
+                }
+                event.target.classList.add("clicked");
+            }
+        }
+
+        function init(name) {
+            for (var i = 0; i < name.length; i++) {
+                name[i].addEventListener("click", (e) => {
+                    handleClick(e, name);
+                });
+            }
+        }
+
+        init(div2);
+        init(div3);
+
+        //성별, 나이별 셀렉트 박스 선택
+        selectGengerAndAge.addEventListener("click", selectBox);
+
+        function selectBox() {
+            //나이선택, 20대,30대,...
+            var gen = document.getElementById("selectGender").value;
+            //성별선택, 여자 or 남자
+            var age = document.getElementById("selectAge").value;
+
+            const formdata = { 'subPlace': category };
+            axios.post('', formdata)
+                .then((e) => {
+
+                })
+        }
+
     </script>
     <script src="/d3/barGraph.js"></script>
     <script src="/d3/lineChart.js"></script>
