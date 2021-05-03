@@ -14,10 +14,16 @@ router.get('/', (req, res, next) => {
     res.render('main');
 });
 
+router.get('/plus', (req, res, next) => {
+    res.render('plus');
+});
+
 router.post('/', async (req, res, next) => {
     console.log('위치검색 라우터 호출됨');
     const place = req.body.place;
-    console.log(place);
+    const gender = req.body.gender;
+    const age = req.body.age;
+    console.log(req.body);
     //place 를 기준으로 관광지 테이블에서 해당 장소를 검색하고 중심좌표로 변경
     try {
         const result = await TourPlace.findOne({
@@ -45,21 +51,61 @@ router.post('/', async (req, res, next) => {
             attribute: ['latitude', 'longitude', 'UserId'],
             order: ['UserId', 'time', 'date'],
             raw: true
+        }).then(async el => {
+            let necessary = [];
+            if (gender == 'all' && age == 'all') {
+                console.log(el);
+                return el;
+            } else {
+                for (let t = 0; t < el.length; t++) {
+                    const addData = await User.findOne({
+                        where: { id: el[t].UserId },
+                        //attributes: ['id', 'gender', 'birth']
+                    });
+                    console.log(addData);
 
+                    let calage = calAge(addData.birth.substr(0, 4));
+                    //둘 다 선택된 경우
+                    if (gender != 'all' && age != 'all') {
+                        if (calage >= parseInt(age) && calage < parseInt(age) + 10 && addData.gender == gender) {
+                            necessary.push(el[t]);
+                        }
+                    }
+                    //성별만 all 이 아닐때
+                    else if (gender != 'all') {
+                        let com = false;
+                        if (gender == 1)
+                            com = true
+
+                        if (addData.gender == com) {
+                            necessary.push(el[t]);
+                        }
+                    }
+                    //나이만 all 이 아닐때
+                    else if (age != 'all') {
+                        if (calage >= parseInt(age) && calage < parseInt(age) + 10) {
+                            necessary.push(el[t]);
+                        }
+                    }
+                }
+                return necessary;
+            }
         }).then(el => {
             //id, 날짜 별로 배열에 저장
-            let userid = el[0].UserId;
-            let beforeDate = el[0].date;
-            for (let i = 0; i < el.length; i++) {
-                if (userid == el[i].UserId && el[i].date === beforeDate) {
-                    member.push({ latitude: el[i].latitude, longitude: el[i].longitude });
-                    if (i == el.length - 1) totalMem.push(member);
-                } else {
-                    totalMem.push(member);
-                    userid = el[i].UserId;
-                    beforeDate = el[i].date;
-                    member = [];
-                    member.push({ latitude: el[i].latitude, longitude: el[i].longitude });
+            if (el.length != 0) {
+                let userid = el[0].UserId;
+                let beforeDate = el[0].date;
+                for (let i = 0; i < el.length; i++) {
+                    if (userid == el[i].UserId && el[i].date === beforeDate) {
+                        member.push({ latitude: el[i].latitude, longitude: el[i].longitude });
+                        if (i == el.length - 1) totalMem.push(member);
+                    } else {
+                        totalMem.push(member);
+                        userid = el[i].UserId;
+                        beforeDate = el[i].date;
+                        member = [];
+                        member.push({ latitude: el[i].latitude, longitude: el[i].longitude });
+                    }
                 }
             }
         });
@@ -103,6 +149,8 @@ router.post('/', async (req, res, next) => {
             avgTime.push({ 'name': subPlace[i].name, 'avg': time + "시간 " + min + "분 " + sec + "초" });
         }
 
+        //const renderData = { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, avgTime: avgTime };
+        //console.log(renderData);
         res.render('map', { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, avgTime: avgTime });
 
     } catch (err) {
@@ -183,15 +231,19 @@ router.post('/ages', async (req, res, next) => {
             raw: true
         });
 
-        const now = new Date();	// 현재 날짜 및 시간
-        const year = now.getFullYear();	// 연도
-        const realAge = parseInt(year) - parseInt(getAge.birth.substr(0, 4)) + 1;
-        const final = realAge / 10 * 10;
-
+        let final = calAge(getAge.birth.substr(0, 4));
         data.push({ 'subPlace': subPlace, 'age': final, 'gender': getAge.gender });
     }
     console.log(data);
     res.json(data);
 });
+
+function calAge(age) {
+    const now = new Date();	// 현재 날짜 및 시간
+    const year = now.getFullYear();	// 연도
+    const realAge = parseInt(year) - parseInt(age) + 1;
+    const final = realAge / 10 * 10;
+    return final;
+}
 
 module.exports = router;
