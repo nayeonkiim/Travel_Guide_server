@@ -278,7 +278,7 @@ router.get('/:title', async (req, res, next) => {
                 TourSubPlaceId: timeSentTotalArr[t][0].toursubplaceid
             });
         }
-        return res.status(500).json(approve);
+        return res.status(200).json(approve);
     } catch (err) {
         console.error(err);
         next(err);
