@@ -285,4 +285,27 @@ router.get('/:title', async (req, res, next) => {
     }
 });
 
+router.get('/places/:place', async (req, res, next) => {
+    const place = decodeURIComponent(req.params.place);
+    console.log(place);
+    try {
+        await TourPlace.findAll({
+            where: {
+                name: {
+                    [Op.like]: "%" + place + "%"
+                }
+            },
+            attributes: ['name']
+        })
+            .then(result => {
+                console.log(result);
+                return res.status(200).json({ "approve": "ok", "places": result });
+            })
+    } catch (err) {
+        console.error(err);
+        next(err);
+    }
+
+});
+
 module.exports = router;
