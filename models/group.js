@@ -9,11 +9,11 @@ module.exports = class Group extends Sequelize.Model {
                 unique: true,
             },
             startDate: {
-                type: Sequelize.DATE,
+                type: Sequelize.DATEONLY,
                 allowNull: false,
             },
             endDate: {
-                type: Sequelize.DATE,
+                type: Sequelize.DATEONLY,
                 allowNull: false,
             }
         }, {
