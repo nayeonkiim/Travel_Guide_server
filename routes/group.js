@@ -13,6 +13,9 @@ router.post('/', async (req, res, next) => {
     console.log(req.body);
     const manager = req.body.manager;
     const title = req.body.title;
+    const startDate = req.body.startDate;
+    const endDate = req.body.endDate;
+    const userId = req.body.userId;
     let approve = { 'approve': 'fail' };
     try {
         //그룹 이름 조회
@@ -29,6 +32,8 @@ router.post('/', async (req, res, next) => {
                         //그룹 생성
                         const newGroup = await Group.create({
                             title,
+                            startDate,
+                            endDate
                         }, { transaction: t });
 
                         //매니저를 그룹 소속으로 넣기
@@ -38,7 +43,7 @@ router.post('/', async (req, res, next) => {
                         //멤버추가하기
                         try {
                             console.log('멤버 추가 시작');
-                            const userId = req.body.userId;
+
                             //, 를 기준으로 멤버 분리
                             let addMem = userId.split(',');
                             const leng = addMem.length;
@@ -229,6 +234,27 @@ router.get('/myGroup/:userId', async (req, res, next) => {
 
     } catch (err) {
         console.error(err);
+        next();
+    }
+});
+
+router.get('/route/:title', async (req, res, next) => {
+    console.log('여행 출발일, 종료일 조회 라우터 호출');
+    const title = req.params.title;
+    try {
+        const date = await Group.findOne({
+            where: { title },
+            attributes: ['startDate', 'endDate']
+        }).then(date => {
+            if (date != null) {
+                date.startDate
+                return res.status(200).json({ "approve": "ok", "date": date });
+            } else {
+                return res.status(500).json({ "approve": "fail_nogroup" });
+            }
+        });
+    } catch (err) {
+        console.log(err);
         next();
     }
 });

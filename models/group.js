@@ -8,6 +8,14 @@ module.exports = class Group extends Sequelize.Model {
                 allowNull: false,
                 unique: true,
             },
+            startDate: {
+                type: Sequelize.DATE,
+                allowNull: false,
+            },
+            endDate: {
+                type: Sequelize.DATE,
+                allowNull: false,
+            }
         }, {
             sequelize,
             timestamps: false,
