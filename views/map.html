@@ -20,17 +20,16 @@
     <input type="hidden" id="subPlaceName" name="subPlaceName" value={{sub.name}}>
     {% endfor %}
 
-
-    {% for mem in totalMem %}
     <div name="memLoc" id={{loop.index}}>
-        {% for m in mem %}
-        <input type="hidden" name="memLati" value={{m.latitude}}>
-        <input type="hidden" name="memLong" value={{m.longitude}}>
+        {% for mem in totalMem %}
+        <input type="hidden" name="memLati" value={{mem.latitude}}>
+        <input type="hidden" name="memLong" value={{mem.longitude}}>
         {% endfor %}
     </div>
-    {% endfor %}
+    
+    
     <div class="map_wrap">
-        <div id="map" style="width:100%;height:650px;position:relative;overflow:hidden;"></div>
+        <div id="map" style="width:100%;height:500px;position:relative;overflow:hidden;"></div>
         <div>
             <form>
                 <select class="float-right" id="selectGender">
@@ -70,7 +69,8 @@
         {% endfor %}
     </div>
 
-    <script type="text/javascript" src="인증키"></script>
+    <script type="text/javascript"
+        src="인증키"></script>
 
     <script>
         var latitude = document.getElementById("latitude").value;
