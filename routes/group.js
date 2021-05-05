@@ -247,7 +247,7 @@ router.get('/route/:title', async (req, res, next) => {
             attributes: ['startDate', 'endDate']
         }).then(date => {
             if (date != null) {
-                return res.status(200).json({ "approve": "ok", "date": date });
+                return res.status(200).json({ "approve": "ok", "date": { date } });
             } else {
                 return res.status(500).json({ "approve": "fail_nogroup" });
             }
