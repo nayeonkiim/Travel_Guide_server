@@ -7,7 +7,7 @@ const TourPlace = require('../models/tourplace');
 
 router.post('/', async (req, res, next) => {
     console.log("여행 상품 등록 라우터 호출");
-    console.log(req.body);
+    console.log(req.body.schedule);
     const title = req.body.title;
     const schedule = req.body.schedule;
     const introduce = req.body.introduce;
@@ -20,7 +20,7 @@ router.post('/', async (req, res, next) => {
                 //숫자 parsing
                 const keyy = i.toString();
                 var arr = schedule[keyy];
-                console.log(JSON.stringify(arr));
+                console.log(arr);
                 for (var j = 0; j < Object.keys(arr).length; j++) {
                     //일정 경로 route 등록
                     const addRoute = await Route.create({
