@@ -20,7 +20,7 @@ router.post('/', async (req, res, next) => {
                 //숫자 parsing
                 const keyy = i.toString();
                 var arr = schedule[keyy];
-                console.log(arr);
+                console.log(JSON.stringify(arr));
                 for (var j = 0; j < Object.keys(arr).length; j++) {
                     //일정 경로 route 등록
                     const addRoute = await Route.create({
