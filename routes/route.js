@@ -13,43 +13,41 @@ router.post('/', async (req, res, next) => {
     const introduce = req.body.introduce;
     const memo = req.body.memo;
 
-    schedule = JSON.parse(schedule);
+    const par = JSON.parse(schedule);
+    console.log(par);
     try {
         //상품 등록
         const result = await sequelize.transaction(async (t) => {
-            for (var i = 1; i <= Object.keys(schedule).length; i++) {
-                //숫자 parsing
-                const keyy = i.toString();
-                var arr = schedule[keyy];
-                console.log(arr);
-                console.log(typeof (arr));
-                for (var j = 0; j < Object.keys(arr).length; j++) {
+            for (var i = 1; i <= par.length; i++) {
+                for (var j = 0; j < par[i].length; j++) {
                     //일정 경로 route 등록
-                    const addRoute = await Route.create({
-                        name: arr[j].name,
-                        startTime: arr[j].startTime,
-                        endTime: arr[j].endTime,
-                        freeTime: arr[j].freeTimeChk,
-                        day: arr[j].day,
-                    })
-                        .then(async addRoute => {
-                            //상품 등록
-                            const addProduct = await Product.create({
-                                title,
-                                introduce,
-                                memo
-                            }, { transaction: t });
+                    for (var k = 0; k < par[i][j].length; k++) {
+                        const addRoute = await Route.create({
+                            name: par[i].name,
+                            startTime: arr[j].startTime,
+                            endTime: arr[j].endTime,
+                            freeTime: arr[j].freeTimeChk,
+                            day: arr[j].day,
+                        })
+                            .then(async addRoute => {
+                                //상품 등록
+                                const addProduct = await Product.create({
+                                    title,
+                                    introduce,
+                                    memo
+                                }, { transaction: t });
 
-                            console.log("addRouter: " + addRoute);
-                            //장소 조회
-                            const tourPlace = await TourPlace.findOne({
-                                where: { name: addRoute.name }
+                                console.log("addRouter: " + addRoute);
+                                //장소 조회
+                                const tourPlace = await TourPlace.findOne({
+                                    where: { name: addRoute.name }
+                                });
+
+                                //장소와 상품에 연관관계 맺어주기
+                                await addRoute.setTourPlace(tourPlace, { transaction: t })
+                                await addRoute.setProduct(addProduct, { transaction: t });
                             });
-
-                            //장소와 상품에 연관관계 맺어주기
-                            await addRoute.setTourPlace(tourPlace, { transaction: t })
-                            await addRoute.setProduct(addProduct, { transaction: t });
-                        });
+                    }
                 }
             }
             return true;
