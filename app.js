@@ -15,6 +15,7 @@ const groupRouter = require('./routes/group');
 const pushRouter = require('./routes/push');
 const locationRouter = require('./routes/location');
 const mapRouter = require('./routes/map');
+const route = require('./routes/route');
 
 const app = express();
 
@@ -64,6 +65,7 @@ app.use('/group', groupRouter);
 app.use('/push', pushRouter);
 app.use('/location', locationRouter);
 app.use('/map', mapRouter);
+app.use('/route', route);
 
 //요청을 수신할 때마다 실행
 app.use(function (req, res, next) {
