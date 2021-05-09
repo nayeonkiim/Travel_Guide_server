@@ -21,47 +21,47 @@ router.post('/', async (req, res, next) => {
             for (var i = 1; i <= par.length; i++) {
                 for (var j = 0; j < par[i].length; j++) {
                     //일정 경로 route 등록
-                    for (var k = 0; k < par[i][j].length; k++) {
-                        const addRoute = await Route.create({
-                            name: par[i].name,
-                            startTime: arr[j].startTime,
-                            endTime: arr[j].endTime,
-                            freeTime: arr[j].freeTimeChk,
-                            day: arr[j].day,
-                        })
-                            .then(async addRoute => {
-                                //상품 등록
-                                const addProduct = await Product.create({
-                                    title,
-                                    introduce,
-                                    memo
-                                }, { transaction: t });
 
-                                console.log("addRouter: " + addRoute);
-                                //장소 조회
-                                const tourPlace = await TourPlace.findOne({
-                                    where: { name: addRoute.name }
-                                });
+                    const addRoute = await Route.create({
+                        name: par[i].name,
+                        startTime: par[i].startTime,
+                        endTime: par[i].endTime,
+                        freeTime: par[i].freeTimeChk,
+                        day: par[i].day,
+                    })
+                        .then(async addRoute => {
+                            //상품 등록
+                            const addProduct = await Product.create({
+                                title,
+                                introduce,
+                                memo
+                            }, { transaction: t });
 
-                                //장소와 상품에 연관관계 맺어주기
-                                await addRoute.setTourPlace(tourPlace, { transaction: t })
-                                await addRoute.setProduct(addProduct, { transaction: t });
+                            console.log("addRouter: " + addRoute);
+                            //장소 조회
+                            const tourPlace = await TourPlace.findOne({
+                                where: { name: addRoute.name }
                             });
-                    }
+
+                            //장소와 상품에 연관관계 맺어주기
+                            await addRoute.setTourPlace(tourPlace, { transaction: t })
+                            await addRoute.setProduct(addProduct, { transaction: t });
+                        });
                 }
             }
+        }
             return true;
-        });
+    });
 
-        if (result)
-            return res.status(200).json({ "approve": "ok" });
-        else
-            return res.status(500).json({ "approve": "fail" });
+if (result)
+    return res.status(200).json({ "approve": "ok" });
+else
+    return res.status(500).json({ "approve": "fail" });
 
     } catch (err) {
-        console.error(err);
-        next();
-    }
+    console.error(err);
+    next();
+}
 });
 
 module.exports = router;
