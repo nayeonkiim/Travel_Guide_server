@@ -13,6 +13,7 @@ router.post('/', async (req, res, next) => {
     const introduce = req.body.introduce;
     const memo = req.body.memo;
 
+    schedule = JSON.parse(schedule);
     try {
         //상품 등록
         const result = await sequelize.transaction(async (t) => {
