@@ -3,12 +3,24 @@ const Sequelize = require('sequelize');
 module.exports = class Route extends Sequelize.Model {
     static init(sequelize) {
         return super.init({
-            date: {
-                type: Sequelize.DATEONLY,
-                allowNull: false,
+            name: {
+                type: Sequelize.STRING(50),
+                allowNull: false
+            },
+            startTime: {
+                type: Sequelize.TIME,
+                allowNull: false
+            },
+            endTime: {
+                type: Sequelize.TIME,
+                allowNull: false
             },
             freeTime: {
                 type: Sequelize.BOOLEAN,
+                allowNull: false
+            },
+            day: {
+                type: Sequelize.INTEGER.UNSIGNED,
                 allowNull: false
             }
         }, {
@@ -24,7 +36,7 @@ module.exports = class Route extends Sequelize.Model {
     }
 
     static associate(db) {
+        db.Route.belongsTo(db.Product);
         db.Route.belongsTo(db.TourPlace);
-        db.Route.belongsTo(db.Group);
     }
 }
