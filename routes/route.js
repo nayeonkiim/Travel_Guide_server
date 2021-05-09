@@ -4,9 +4,9 @@ const Product = require('../models/product');
 const router = express.Router();
 const { sequelize } = require('../models');
 
-
 router.post('/', async (req, res, next) => {
     console.log("여행 상품 등록 라우터 호출");
+    console.log(req.body);
     const title = req.body.title;
     const route = req.body.route;
     const introduce = req.body.introduce;
