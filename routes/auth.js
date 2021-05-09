@@ -61,7 +61,6 @@ router.post('/join', async (req, res, next) => {
                 role
             }, { transaction: t });
         });
-        console.log(result);
         //회원가입이 완료되어 201 상태코드 전송
         return res.status(200).json(approve);
     } catch (error) {

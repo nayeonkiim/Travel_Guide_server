@@ -10,6 +10,7 @@ const TourPlace = require('../models/tourplace');
 const Time = require('../models/time');
 const { Op } = require("sequelize");
 const common = require('../lib/common');
+const request = require('request');
 
 
 router.post('/', async (req, res, next) => {
@@ -285,6 +286,7 @@ router.get('/:title', async (req, res, next) => {
     }
 });
 
+
 router.get('/places/:place', async (req, res, next) => {
     const place = decodeURIComponent(req.params.place);
     console.log(place);
@@ -298,8 +300,13 @@ router.get('/places/:place', async (req, res, next) => {
             attributes: ['name']
         })
             .then(result => {
-                console.log(result);
-                return res.status(200).json({ "approve": "ok", "places": result });
+                if (result.length == 0) {
+                    console.log(result);
+                    return res.status(200).json({ "approve": "no_data" });
+                } else {
+                    console.log(result);
+                    return res.status(200).json({ "approve": "ok", "places": result });
+                }
             })
     } catch (err) {
         console.error(err);
@@ -307,5 +314,28 @@ router.get('/places/:place', async (req, res, next) => {
     }
 
 });
+
+
+router.get('/test/:name', function (req, res, next) {
+    var name = req.params.name;
+    console.log(name);
+    var url = 'http://api.data.go.kr/openapi/tn_pubr_public_trrsrt_api';
+    var queryParams = '?' + encodeURIComponent('ServiceKey') + '=FWXTdtDpbejCSXg3tupHeLkAC2IX3kr%2B0Z%2BicMhcfJ0ETaurzwObU0YL%2F6OGYlZwU9wMUJzBPeLjoCKnIx0xJA%3D%3D'; /* Service Key*/
+    queryParams += '&' + encodeURIComponent('pageNo') + '=' + encodeURIComponent('0'); /* */
+    queryParams += '&' + encodeURIComponent('numOfRows') + '=' + encodeURIComponent('100'); /* */
+    queryParams += '&' + encodeURIComponent('type') + '=' + encodeURIComponent('xml'); /* */
+    queryParams += '&' + encodeURIComponent('trrsrtNm') + '=' + encodeURIComponent(name); /* */
+
+    request({
+        url: url + queryParams,
+        method: 'GET'
+    }, function (error, response, body) {
+        console.log('Status', response.statusCode);
+        console.log('Headers', JSON.stringify(response.headers));
+        console.log('Reponse received', body);
+        return res.status(response.statusCode).json(body);
+    });
+});
+
 
 module.exports = router;
