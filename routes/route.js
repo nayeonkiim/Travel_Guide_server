@@ -60,6 +60,7 @@ router.post('/', async (req, res, next) => {
 router.get('/title', async (req, res, next) => {
     console.log('여행 상품 title 보내주는 라우터 호출');
     try {
+        //상품 전체 title 가져오기
         const title = await Product.findAll({
             attributes: ['title']
         });
@@ -76,17 +77,22 @@ router.get('/:title', async (req, res, next) => {
     const title = req.params.title;
     let totalRoute = [];
     try {
+        //title에 해당하는 상품 찾기
         const productInfo = await Product.findOne({
             where: { title }
         });
 
+        //title에 해당하는 상품 없을 경우 없는 상품 message 보내주기
         if (productInfo == null) return res.status(500).json({ "approve": "fail", "message": "없는 상품입니다." });
 
+        //상품의 경로 찾기
         const routeInfo = await Route.findAll({
             where: { ProductId: productInfo.id }
         }).then(routeInfo => {
+            console.log(routeInfo);
             let k = 1;
             let subRoute = [];
+            //day 별로 분류해서 배열에 push
             for (let i = 0; i < routeInfo.length; i++) {
                 if (routeInfo[i].day == k) {
                     subRoute.push(routeInfo[i]);
@@ -97,6 +103,7 @@ router.get('/:title', async (req, res, next) => {
                     subRoute.push(routeInfo[i]);
                 }
             }
+            totalRoute.push(subRoute);
         });
         console.log(totalRoute);
         return res.status(200).json({ "approve": "ok", "product": productInfo, "route": totalRoute });

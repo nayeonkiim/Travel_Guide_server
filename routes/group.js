@@ -4,15 +4,16 @@ const User = require('../models/user');
 const UserGroup = require('../models/userGroup');
 const router = express.Router();
 const { sequelize } = require('../models');
+const Product = require('../models/product');
 
 
 //그룹 생성
-//매니저 권한인 경우만 그룹 생성하도록 수정
 router.post('/', async (req, res, next) => {
     console.log('그룹 생성하기 라우터 호출됨');
     console.log(req.body);
     const manager = req.body.manager;
     const title = req.body.title;
+    const product = req.body.product;
     const startDate = req.body.startDate;
     const endDate = req.body.endDate;
     const userId = req.body.userId;
@@ -25,59 +26,65 @@ router.post('/', async (req, res, next) => {
             .then(async (groupName) => {
                 //그룹 이름 없는 경우
                 if (groupName.length == 0) {
-                    //트랜잭션 안에서 실행
-                    const t = await sequelize.transaction();
+                    //product에 해당하는 상품 조회
+                    await Product.selectOne({
+                        where: { title: product }
+                    }).then(async product => {
+                        //트랜잭션 안에서 실행
+                        const t = await sequelize.transaction();
 
-                    try {
-                        //그룹 생성
-                        const newGroup = await Group.create({
-                            title,
-                            startDate,
-                            endDate
-                        }, { transaction: t });
-
-                        //매니저를 그룹 소속으로 넣기
-                        const user = await User.findOne({ where: { userId: manager } });
-                        await newGroup.addUser(user, { transaction: t });
-
-                        //멤버추가하기
                         try {
-                            console.log('멤버 추가 시작');
+                            //그룹 생성
+                            const newGroup = await Group.create({
+                                title,
+                                startDate,
+                                endDate,
+                                ProductId: product
+                            }, { transaction: t });
 
-                            //, 를 기준으로 멤버 분리
-                            let addMem = userId.split(',');
-                            const leng = addMem.length;
-                            console.log(addMem);
+                            //매니저를 그룹 소속으로 넣기
+                            const user = await User.findOne({ where: { userId: manager } });
+                            await newGroup.addUser(user, { transaction: t });
 
-                            //멤버 한명씩 그룹에 넣어주기
-                            for (var i = 0; i < leng; i++) {
-                                console.log(addMem[i]);
-                                let user2 = await User.findOne({ where: { userId: addMem[i] } });
-                                //존재하는 멤버인 경우
-                                if (user2)
-                                    await newGroup.addUser(user2, { transaction: t });
-                                else {
-                                    //존재하지 않는 멤버의 경우
-                                    console.log('없는 멤버');
-                                    await t.rollback();
-                                    approve.approve = '없는 멤버 입니다.';
-                                    return res.status(401).json(approve);
+                            //멤버추가하기
+                            try {
+                                console.log('멤버 추가 시작');
+
+                                //, 를 기준으로 멤버 분리
+                                let addMem = userId.split(',');
+                                const leng = addMem.length;
+                                console.log(addMem);
+
+                                //멤버 한명씩 그룹에 넣어주기
+                                for (var i = 0; i < leng; i++) {
+                                    console.log(addMem[i]);
+                                    let user2 = await User.findOne({ where: { userId: addMem[i] } });
+                                    //존재하는 멤버인 경우
+                                    if (user2)
+                                        await newGroup.addUser(user2, { transaction: t });
+                                    else {
+                                        //존재하지 않는 멤버의 경우
+                                        console.log('없는 멤버');
+                                        await t.rollback();
+                                        approve.approve = '없는 멤버 입니다.';
+                                        return res.status(401).json(approve);
+                                    }
                                 }
+                            } catch (err) {
+                                console.error(err);
+                                next(err);
                             }
+                            await t.commit();
+                            approve.approve = 'ok_groupCreate';
+                            //멤버 정상적으로 추가 완료
+                            return res.json(approve);
                         } catch (err) {
+                            //에러가 있는 경우 rollback
+                            await t.rollback();
                             console.error(err);
                             next(err);
                         }
-                        await t.commit();
-                        approve.approve = 'ok_groupCreate';
-                        //멤버 정상적으로 추가 완료
-                        res.json(approve);
-                    } catch (err) {
-                        //에러가 있는 경우 rollback
-                        await t.rollback();
-                        console.error(err);
-                        next(err);
-                    }
+                    })
                 } else {
                     approve.approve = 'fail';
                     res.status(409).json(approve);

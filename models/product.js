@@ -30,5 +30,6 @@ module.exports = class Product extends Sequelize.Model {
 
     static associate(db) {
         db.Product.hasMany(db.Route);
+        db.Product.hasMany(db.Group);
     }
 }
