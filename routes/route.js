@@ -18,37 +18,35 @@ router.post('/', async (req, res, next) => {
     try {
         //상품 등록
         const result = await sequelize.transaction(async (t) => {
-            for (var i = 0; i < par.length; i++) {
-                for (var j = 0; j < par[i].length; j++) {
-                    //일정 경로 route 등록
-                    const addRoute = await Route.create({
-                        name: par[i][j].name,
-                        startTime: par[i][j].startTime,
-                        endTime: par[i][j].endTime,
-                        freeTime: par[i][j].freeTimeChk,
-                        day: par[i][j].day,
-                    }).then(async addRoute => {
-                        //상품 등록
-                        const addProduct = await Product.create({
-                            title,
-                            introduce,
-                            memo
-                        }, { transaction: t });
+            const addProduct = await Product.create({
+                title,
+                introduce,
+                memo
+            }).then(addProduct => {
+                for (var i = 0; i < par.length; i++) {
+                    for (var j = 0; j < par[i].length; j++) {
+                        //일정 경로 route 등록
+                        const addRoute = await Route.create({
+                            name: par[i][j].name,
+                            startTime: par[i][j].startTime,
+                            endTime: par[i][j].endTime,
+                            freeTime: par[i][j].freeTimeChk,
+                            day: par[i][j].day,
+                        }).then(async addRoute => {
+                            console.log("addRouter: " + addRoute);
+                            //장소 조회
+                            const tourPlace = await TourPlace.findOne({
+                                where: { name: addRoute.name }
+                            });
 
-                        console.log("addRouter: " + addRoute);
-                        //장소 조회
-                        const tourPlace = await TourPlace.findOne({
-                            where: { name: addRoute.name }
+                            //장소와 상품에 연관관계 맺어주기
+                            await addRoute.setTourPlace(tourPlace, { transaction: t })
+                            await addRoute.setProduct(addProduct, { transaction: t });
                         });
-
-                        //장소와 상품에 연관관계 맺어주기
-                        await addRoute.setTourPlace(tourPlace, { transaction: t })
-                        await addRoute.setProduct(addProduct, { transaction: t });
-                    });
+                    }
                 }
-            }
-
-            return true;
+                return true;
+            })
         });
 
         if (result)
