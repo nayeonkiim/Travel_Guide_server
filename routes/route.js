@@ -74,6 +74,7 @@ router.get('/title', async (req, res, next) => {
 router.get('/:title', async (req, res, next) => {
     console.log('상품 title에 해당하는 일정 넘겨주는 라우터 호출');
     const title = req.params.title;
+    let totalRoute = [];
     try {
         const productInfo = await Product.findOne({
             where: { title }
@@ -83,9 +84,22 @@ router.get('/:title', async (req, res, next) => {
 
         const routeInfo = await Route.findAll({
             where: { ProductId: productInfo.id }
+        }).then(routeInfo => {
+            let k = 1;
+            let subRoute = [];
+            for (let i = 0; i < routeInfo.length; i++) {
+                if (routeInfo[i].day == k) {
+                    subRoute.push(routeInfo[i]);
+                } else {
+                    totalRoute.push(subRoute);
+                    subRoute = [];
+                    k += 1;
+                    subRoute.push(routeInfo[i]);
+                }
+            }
         });
-
-        return res.status(200).json({ "approve": "ok", "product": productInfo, "route": routeInfo });
+        console.log(totalRoute);
+        return res.status(200).json({ "approve": "ok", "product": productInfo, "route": totalRoute });
     } catch (err) {
         console.error(err);
         next();
