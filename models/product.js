@@ -5,7 +5,8 @@ module.exports = class Product extends Sequelize.Model {
         return super.init({
             title: {
                 type: Sequelize.STRING(40),
-                allowNull: false
+                allowNull: false,
+                unique: true,
             },
             introduce: {
                 type: Sequelize.STRING(1000),
