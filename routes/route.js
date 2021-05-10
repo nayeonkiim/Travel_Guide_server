@@ -22,7 +22,7 @@ router.post('/', async (req, res, next) => {
                 title,
                 introduce,
                 memo
-            }).then(addProduct => {
+            }).then(async addProduct => {
                 for (var i = 0; i < par.length; i++) {
                     for (var j = 0; j < par[i].length; j++) {
                         //일정 경로 route 등록
@@ -45,14 +45,10 @@ router.post('/', async (req, res, next) => {
                         });
                     }
                 }
-                return true;
             })
         });
 
-        if (result)
-            return res.status(200).json({ "approve": "ok" });
-        else
-            return res.status(500).json({ "approve": "fail" });
+        return res.status(200).json({ "approve": "ok" });
 
     } catch (err) {
         console.error(err);

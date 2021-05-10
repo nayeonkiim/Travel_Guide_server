@@ -16,6 +16,7 @@ const pushRouter = require('./routes/push');
 const locationRouter = require('./routes/location');
 const mapRouter = require('./routes/map');
 const route = require('./routes/route');
+const saveTodb = require('./routes/saveTodb');
 
 const app = express();
 
@@ -66,6 +67,7 @@ app.use('/push', pushRouter);
 app.use('/location', locationRouter);
 app.use('/map', mapRouter);
 app.use('/route', route);
+app.use('/saveTodb', saveTodb);
 
 //요청을 수신할 때마다 실행
 app.use(function (req, res, next) {
