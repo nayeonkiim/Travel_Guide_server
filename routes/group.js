@@ -27,8 +27,9 @@ router.post('/', async (req, res, next) => {
                 //그룹 이름 없는 경우
                 if (groupName.length == 0) {
                     //product에 해당하는 상품 조회
-                    await Product.selectOne({
-                        where: { title: product }
+                    await Product.findOne({
+                        where: { title: product },
+                        attributes: ['id']
                     }).then(async product => {
                         //트랜잭션 안에서 실행
                         const t = await sequelize.transaction();
@@ -170,36 +171,42 @@ router.get("/member/:title", async (req, res, next) => {
     const title = req.params.title;
 
     try {
+        let product = '';
         //title로 groupId 구하기
         const groupId = await Group.findOne({
             where: { title }
         })
-            .then(async (groupId) => {
-                if (groupId) {
-                    const users = await groupId.getUsers({
-                        attributes: ['userId']
-                    })
-                        .then(users => {
-                            let approve = { "approve": "ok_mem_receive", "userMem": users }
-                            if (users.length > 0) {
-                                console.log('그룹 멤버 조회 성공');
-                                res.status(200).json(approve);
-                            } else {
-                                console.log('그룹 멤버 조회 실패');
-                                approve.approve = "fail_noGroupMember";
-                                approve.userMem = "noMember";
-                                res.status(500).json(approve);
-                            }
-                        })
-                } else {
-                    console.log(groupId + ' is null');
-                }
+
+        if (groupId) {
+            const productName = await Product.findOne({
+                where: { id: groupId.ProductId },
+                attributes: ['title']
+            });
+            product = productName;
+            console.log("product: " + product);
+
+            const users = await groupId.getUsers({
+                attributes: ['userId']
             })
-            .catch(err => {
-                const approve = { 'approve': '존재하지 않는 그룹명 입니다.' };
-                console.log(approve.approve);
-                return res.status(500).json(approve);
-            })
+                .then(async users => {
+                    let approve = { "approve": "ok_mem_receive", "userMem": users, "product": product }
+                    if (users.length > 0) {
+                        console.log('그룹 멤버 조회 성공');
+                        res.status(200).json(approve);
+                    } else {
+                        console.log('그룹 멤버 조회 실패');
+                        approve.approve = "fail_noGroupMember";
+                        approve.userMem = "noMember";
+                        res.status(500).json(approve);
+                    }
+                })
+        } else {
+            console.log(groupId + ' is null');
+            const approve = { 'approve': '존재하지 않는 그룹명 입니다.' };
+            console.log(approve.approve);
+            return res.status(500).json(approve);
+        }
+
     } catch (err) {
         console.error(err);
         next(err);
