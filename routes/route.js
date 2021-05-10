@@ -18,38 +18,36 @@ router.post('/', async (req, res, next) => {
     try {
         //상품 등록
         const result = await sequelize.transaction(async (t) => {
-            for (var i = 1; i <= par.length; i++) {
+            for (var i = 0; i < par.length; i++) {
                 for (var j = 0; j < par[i].length; j++) {
                     //일정 경로 route 등록
-                    for (var j = 0; j < par[i].length; j++) {
-                        //일정 경로 route 등록
-                        const addRoute = await Route.create({
-                            name: par[i][j].name,
-                            startTime: par[i][j].startTime,
-                            endTime: par[i][j].endTime,
-                            freeTime: par[i][j].freeTimeChk,
-                            day: par[i][j].day,
-                        }).then(async addRoute => {
-                            //상품 등록
-                            const addProduct = await Product.create({
-                                title,
-                                introduce,
-                                memo
-                            }, { transaction: t });
+                    const addRoute = await Route.create({
+                        name: par[i][j].name,
+                        startTime: par[i][j].startTime,
+                        endTime: par[i][j].endTime,
+                        freeTime: par[i][j].freeTimeChk,
+                        day: par[i][j].day,
+                    }).then(async addRoute => {
+                        //상품 등록
+                        const addProduct = await Product.create({
+                            title,
+                            introduce,
+                            memo
+                        }, { transaction: t });
 
-                            console.log("addRouter: " + addRoute);
-                            //장소 조회
-                            const tourPlace = await TourPlace.findOne({
-                                where: { name: addRoute.name }
-                            });
-
-                            //장소와 상품에 연관관계 맺어주기
-                            await addRoute.setTourPlace(tourPlace, { transaction: t })
-                            await addRoute.setProduct(addProduct, { transaction: t });
+                        console.log("addRouter: " + addRoute);
+                        //장소 조회
+                        const tourPlace = await TourPlace.findOne({
+                            where: { name: addRoute.name }
                         });
-                    }
+
+                        //장소와 상품에 연관관계 맺어주기
+                        await addRoute.setTourPlace(tourPlace, { transaction: t })
+                        await addRoute.setProduct(addProduct, { transaction: t });
+                    });
                 }
             }
+
             return true;
         });
 
@@ -77,6 +75,29 @@ router.get('/title', async (req, res, next) => {
         next();
     }
 });
+
+
+router.get('/:title', async (req, res, next) => {
+    console.log('상품 title에 해당하는 일정 넘겨주는 라우터 호출');
+    const title = req.params.title;
+    try {
+        const productInfo = await Product.findOne({
+            where: { title }
+        });
+
+        if (productInfo == null) return res.status(500).json({ "approve": "fail", "message": "없는 상품입니다." });
+
+        const routeInfo = await Route.findAll({
+            where: { ProductId: productInfo.id }
+        });
+
+        return res.status(200).json({ "approve": "ok", "product": productInfo, "route": routeInfo });
+    } catch (err) {
+        console.error(err);
+        next();
+    }
+})
+
 
 module.exports = router;
 
