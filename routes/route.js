@@ -4,6 +4,7 @@ const Product = require('../models/product');
 const router = express.Router();
 const { sequelize } = require('../models');
 const TourPlace = require('../models/tourplace');
+const common = require('../lib/common');
 
 router.post('/', async (req, res, next) => {
     console.log("여행 상품 등록 라우터 호출");
@@ -75,7 +76,7 @@ router.get('/title', async (req, res, next) => {
 router.get('/:title', async (req, res, next) => {
     console.log('상품 title에 해당하는 일정 넘겨주는 라우터 호출');
     const title = req.params.title;
-    let totalRoute = [];
+
     try {
         //title에 해당하는 상품 찾기
         const productInfo = await Product.findOne({
@@ -86,25 +87,7 @@ router.get('/:title', async (req, res, next) => {
         if (productInfo == null) return res.status(500).json({ "approve": "fail", "message": "없는 상품입니다." });
 
         //상품의 경로 찾기
-        const routeInfo = await Route.findAll({
-            where: { ProductId: productInfo.id }
-        }).then(routeInfo => {
-            console.log(routeInfo);
-            let k = 1;
-            let subRoute = [];
-            //day 별로 분류해서 배열에 push
-            for (let i = 0; i < routeInfo.length; i++) {
-                if (routeInfo[i].day == k) {
-                    subRoute.push(routeInfo[i]);
-                } else {
-                    totalRoute.push(subRoute);
-                    subRoute = [];
-                    k += 1;
-                    subRoute.push(routeInfo[i]);
-                }
-            }
-            totalRoute.push(subRoute);
-        });
+        const totalRoute = common.routeInfo(productInfo.id);
         console.log(totalRoute);
         return res.status(200).json({ "approve": "ok", "product": productInfo, "route": totalRoute });
     } catch (err) {
