@@ -5,6 +5,7 @@ const UserGroup = require('../models/userGroup');
 const router = express.Router();
 const { sequelize } = require('../models');
 const Product = require('../models/product');
+const common = require('../lib/common');
 
 
 //그룹 생성
@@ -35,17 +36,20 @@ router.post('/', async (req, res, next) => {
                         const t = await sequelize.transaction();
 
                         try {
+                            //매니저 이름 조회
+                            const managerId = await User.findOne({
+                                where: { userId: manager },
+                                attributes: ['id']
+                            });
+
                             //그룹 생성
                             const newGroup = await Group.create({
                                 title,
                                 startDate,
                                 endDate,
-                                ProductId: product
+                                manager: managerId,
+                                ProductId: product.id
                             }, { transaction: t });
-
-                            //매니저를 그룹 소속으로 넣기
-                            const user = await User.findOne({ where: { userId: manager } });
-                            await newGroup.addUser(user, { transaction: t });
 
                             //멤버추가하기
                             try {
@@ -273,5 +277,41 @@ router.get('/route/:title', async (req, res, next) => {
         next();
     }
 });
+
+
+router.get("/schedule/:title", async (req, res, next) => {
+    console.log("그룹 일정 조회 라우터 호출");
+    const title = req.params.title;
+    try {
+        //title로 해당 그룹 조회
+        const group = await Group.findOne({
+            where: { title },
+            attributes: ['manager', 'ProductId'],
+            raw: true
+        });
+        console.log(group);
+
+        //manager 조회
+        const managerInfo = await User.findOne({
+            where: { userId: group.manager },
+            attributes: ['name', 'userId']
+        });
+
+        //여행 product 조회
+        const productInfo = await Product.findOne({
+            where: { id: group.ProductId },
+            raw: true
+        });
+
+        //상품의 경로 조회
+        const totalRoute = common.routeInfo(group.ProductId);
+        const result = { "approve": "ok", "product": productInfo, "route": totalRoute, "name": managerInfo.name, "Id": managerInfo.userId };
+        console.log(result);
+        return res.status(200).json(result);
+    } catch (err) {
+        console.error(err);
+        next();
+    }
+})
 
 module.exports = router;

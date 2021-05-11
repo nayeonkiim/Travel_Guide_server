@@ -15,6 +15,10 @@ module.exports = class Group extends Sequelize.Model {
             endDate: {
                 type: Sequelize.DATEONLY,
                 allowNull: false,
+            },
+            manager: {
+                type: Sequelize.STRING(10),
+                allowNull: false
             }
         }, {
             sequelize,
