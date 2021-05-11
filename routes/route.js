@@ -87,7 +87,7 @@ router.get('/:title', async (req, res, next) => {
         if (productInfo == null) return res.status(500).json({ "approve": "fail", "message": "없는 상품입니다." });
 
         //상품의 경로 찾기
-        const totalRoute = common.routeInfo(productInfo.id);
+        const totalRoute = await common.routeInfo(productInfo.id);
         console.log(totalRoute);
         return res.status(200).json({ "approve": "ok", "product": productInfo, "route": totalRoute });
     } catch (err) {

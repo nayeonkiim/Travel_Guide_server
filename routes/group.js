@@ -304,7 +304,7 @@ router.get("/schedule/:title", async (req, res, next) => {
         });
 
         //상품의 경로 조회
-        const totalRoute = common.routeInfo(group.ProductId);
+        const totalRoute = await common.routeInfo(group.ProductId);
         const result = { "approve": "ok", "product": productInfo, "route": totalRoute, "name": managerInfo.name, "Id": managerInfo.userId };
         console.log(result);
         return res.status(200).json(result);
