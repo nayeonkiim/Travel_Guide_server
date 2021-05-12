@@ -93,7 +93,7 @@ router.post('/', async (req, res, next) => {
                     })
                 } else {
                     approve.approve = 'fail';
-                    res.status(409).json(approve);
+                    return res.status(409).json(approve);
                 }
             });
 
@@ -115,13 +115,13 @@ router.get("/idCheck/:userId", async (req, res, next) => {
                 if (result) {
                     approve.approve = "ok_groupIdChk";
                     //멤버 있는 경우
-                    res.status(200).json(approve);
+                    return res.status(200).json(approve);
                 } else {
                     //멤버 없는 경우
                     approve.approve = "fail_groupIdChk";
                     //status(400) 으로 보내면 에러 메시지 안감
                     //res.status(401).json(approve); 
-                    res.json(approve);
+                    return res.json(approve);
                 }
             });
     } catch (err) {
@@ -197,12 +197,12 @@ router.get("/member/:title", async (req, res, next) => {
                     let approve = { "approve": "ok_mem_receive", "userMem": users, "product": product }
                     if (users.length > 0) {
                         console.log('그룹 멤버 조회 성공');
-                        res.status(200).json(approve);
+                        return res.status(200).json(approve);
                     } else {
                         console.log('그룹 멤버 조회 실패');
                         approve.approve = "fail_noGroupMember";
                         approve.userMem = "noMember";
-                        res.status(500).json(approve);
+                        return res.status(500).json(approve);
                     }
                 })
         } else {
@@ -243,12 +243,12 @@ router.get('/myGroup/:userId', async (req, res, next) => {
         //그룹 갯수가 하나이상이면 그룹 정보 보내주기
         if (mygroup.length > 0) {
             let approve = { 'approve': 'ok', 'group': mygroup };
-            res.status(200).json(approve);
+            return res.status(200).json(approve);
         }
         //그룹 갯수 없는 경우 
         else {
             let approve = { 'approve': 'fail_nogroup' };
-            res.status(500).json(approve);
+            return res.status(500).json(approve);
         }
 
     } catch (err) {
