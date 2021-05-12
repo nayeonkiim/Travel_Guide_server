@@ -1,7 +1,20 @@
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>좌표로 주소를 얻어내기</title>
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <script src="//code.jquery.com/jquery-1.11.0.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/css/style.css" />
+
+</head>
+
 <body>
-    <div id="map" style="width:100%;height:350px;"></div>
+    <div id="map" style="width:100%;height:600px;"></div>
     <p><em>지도를 클릭해주세요!</em></p>
     <p id="result"></p>
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=인증키"></script>
 
     <script>
         // 마커를 클릭하면 장소명을 표출할 인포윈도우 입니다
@@ -9,7 +22,7 @@
 
         var mapContainer = document.getElementById('map'), // 지도를 표시할 div 
             mapOption = {
-                center: new kakao.maps.LatLng(37.566826, 126.9786567), // 지도의 중심좌표
+                center: new kakao.maps.LatLng(37.58252994071138, 127.01118274674349), // 지도의 중심좌표
                 level: 3 // 지도의 확대 레벨
             };
 
@@ -20,7 +33,7 @@
         var ps = new kakao.maps.services.Places();
 
         // 키워드로 장소를 검색합니다
-        ps.keywordSearch('소래습지생태공원', placesSearchCB);
+        ps.keywordSearch('한성대학교', placesSearchCB);
 
         // 키워드 검색 완료 시 호출되는 콜백함수 입니다
         function placesSearchCB(data, status, pagination) {
@@ -62,6 +75,19 @@
                 // 마커를 클릭하면 장소명이 인포윈도우에 표출됩니다
                 infowindow.setContent('<div style="padding:5px;font-size:12px;">' + place.place_name + '</div>');
                 infowindow.open(map, marker);
+            });
+
+            kakao.maps.event.addListener(map, 'click', function (mouseEvent) {
+
+                // 클릭한 위도, 경도 정보를 가져옵니다 
+                var latlng = mouseEvent.latLng;
+
+                var message = '클릭한 위치의 위도는 ' + latlng.getLat() + ' 이고, ';
+                message += '경도는 ' + latlng.getLng() + ' 입니다';
+
+                var resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = message;
+
             });
         }
     </script>
