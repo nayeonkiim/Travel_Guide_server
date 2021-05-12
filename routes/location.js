@@ -60,14 +60,14 @@ router.post('/', async (req, res, next) => {
                     TourPlaceId: whichPlace.id,
                     latitude: {
                         [Op.and]: {
-                            [Op.gt]: latitude - 0.002,
-                            [Op.lt]: latitude + 0.002
+                            [Op.gt]: latitude - 0.0005,
+                            [Op.lt]: latitude + 0.0005
                         }
                     },
                     longitude: {
                         [Op.and]: {
-                            [Op.gt]: longitude - 0.002,
-                            [Op.lt]: longitude + 0.002
+                            [Op.gt]: longitude - 0.005,
+                            [Op.lt]: longitude + 0.005
                         }
                     }
                 }
