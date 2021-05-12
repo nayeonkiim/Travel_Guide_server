@@ -36,10 +36,9 @@ router.post('/', async (req, res, next) => {
                         const t = await sequelize.transaction();
 
                         try {
-                            //매니저 이름 조회
+                            //매니저 조회
                             const managerId = await User.findOne({
                                 where: { userId: manager },
-                                attributes: ['id']
                             });
 
                             //그룹 생성
@@ -47,9 +46,11 @@ router.post('/', async (req, res, next) => {
                                 title,
                                 startDate,
                                 endDate,
-                                manager: managerId,
+                                manager: managerId.id,
                                 ProductId: product.id
                             }, { transaction: t });
+                            //매니저 멤버로 추가하기
+                            await newGroup.addUser(managerId, { transaction: t });
 
                             //멤버추가하기
                             try {
@@ -293,7 +294,7 @@ router.get("/schedule/:title", async (req, res, next) => {
 
         //manager 조회
         const managerInfo = await User.findOne({
-            where: { userId: group.manager },
+            where: { id: group.manager },
             attributes: ['name', 'userId']
         });
 
