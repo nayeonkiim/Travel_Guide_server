@@ -27,7 +27,6 @@ router.post('/', async (req, res, next) => {
     let approve = { "approve": "ok" };
 
     try {
-        let nearSubPlace = [];
         //user 정보 조회
         const userInfo = await User.findOne({
             where: { userId },
@@ -35,7 +34,7 @@ router.post('/', async (req, res, next) => {
         console.log(userInfo);
 
         //위도,경도(0.01보다 오차범위 작은) 근처 관광지 찾기
-        const whichPlace = await TourPlace.findOne({
+        const whichPlace = await TourPlace.findAll({
             where: {
                 latitude: {
                     [Op.and]: {
@@ -50,7 +49,12 @@ router.post('/', async (req, res, next) => {
                     }
                 }
             }
+        }).then(place => {
+            const nearPlace = common.nearPlace(place);
+            console.log("가장 가까운 관광지: " + nearPlace);
+            return nearPlace;
         });
+
         console.log(whichPlace);
 
         //위도,경도(0.002보다 오차범위 작은) 근처 sub 관광지 찾기
@@ -71,28 +75,32 @@ router.post('/', async (req, res, next) => {
                         }
                     }
                 }
-            },
-        }).then(place => {
-            let compare = [];
-            let min = 0, minObj = 0;
-            place.forEach(x => {
-                value = Math.sqrt(Math.pow(latitude - x.latitude, 2) + Math.pow(longitude - x.longitude, 2));
-                compare.push({ 'id': x.id, 'value': value });
-            });
-
-            if (compare.length != 0) {
-                //가까운 거리 찾기
-                min = compare[0].value;
-                minObj = compare[0];
-                for (let i = 1; i < compare.length; i++) {
-                    if (compare[i].value < min) {
-                        min = compare[i].value;
-                        minObj = compare[i];
-                    }
-                }
-                //가장 거리 가까운
-                nearSubPlace.push(minObj.id);
             }
+        }).then(place => {
+            let nearplacename = place.map(p => p.name);
+            console.log(nearplacename);
+            let nearSubPlace = [];
+            //let compare = [];
+            // let min = 0, minObj = 0;
+            // place.forEach(x => {
+            //     value = Math.sqrt(Math.pow(latitude - x.latitude, 2) + Math.pow(longitude - x.longitude, 2));
+            //     compare.push({ 'id': x.id, 'value': value });
+            // });
+
+            // if (compare.length != 0) {
+            //     //가까운 거리 찾기
+            //     min = compare[0].value;
+            //     minObj = compare[0];
+            //     for (let i = 1; i < compare.length; i++) {
+            //         if (compare[i].value < min) {
+            //             min = compare[i].value;
+            //             minObj = compare[i];
+            //         }
+            //     }
+            //     //가장 거리 가까운
+            //     nearSubPlace.push(minObj.id);
+            // }
+            nearSubPlace = common.nearPlace(place);
         });
         console.log("가까운 subPlace: " + nearSubPlace);
 
