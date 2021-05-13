@@ -25,6 +25,8 @@ router.post('/', async (req, res, next) => {
     console.log(req.body);
     //트랜잭션 안에서 시작
     let approve = { "approve": "ok" };
+    let nearSubPlace = [];
+    let nearPlace = [];
 
     try {
         //user 정보 조회
@@ -50,18 +52,17 @@ router.post('/', async (req, res, next) => {
                 }
             }
         }).then(place => {
-            const nearPlace = common.nearPlace(place);
+            nearPlace = common.nearPlace(latitude, longitude, place);
             console.log("가장 가까운 관광지: " + nearPlace);
-            return nearPlace;
+
         });
 
-        console.log(whichPlace);
 
         //위도,경도(0.002보다 오차범위 작은) 근처 sub 관광지 찾기
         const whichSubPlace = await TourSubPlace.findAll({
             where: {
                 [Op.and]: {
-                    TourPlaceId: whichPlace.id,
+                    TourPlaceId: nearPlace,
                     latitude: {
                         [Op.and]: {
                             [Op.gt]: latitude - 0.0005,
@@ -79,7 +80,6 @@ router.post('/', async (req, res, next) => {
         }).then(place => {
             let nearplacename = place.map(p => p.name);
             console.log(nearplacename);
-            let nearSubPlace = [];
             //let compare = [];
             // let min = 0, minObj = 0;
             // place.forEach(x => {
@@ -100,7 +100,7 @@ router.post('/', async (req, res, next) => {
             //     //가장 거리 가까운
             //     nearSubPlace.push(minObj.id);
             // }
-            nearSubPlace = common.nearPlace(place);
+            nearSubPlace = common.nearPlace(latitude, longitude, place);
         });
         console.log("가까운 subPlace: " + nearSubPlace);
 
@@ -117,7 +117,7 @@ router.post('/', async (req, res, next) => {
                 const addUser = await createLocation.setUser(userInfo, { transaction: t });
                 console.log("정상적으로 위치 저장 완료");
                 //새로 생성한 위치정보에 tourplace 정보 넣어주기
-                const tour = await createLocation.addTourPlace(whichPlace, { transaction: t });
+                const tour = await createLocation.addTourPlace(nearPlace, { transaction: t });
                 console.log("정상적으로 관광지 장소와 연관 맺어주기 완료");
 
 
