@@ -63,8 +63,11 @@ router.get('/title', async (req, res, next) => {
     try {
         //상품 전체 title 가져오기
         const title = await Product.findAll({
-            attributes: ['title']
+            attributes: ['title'],
+            raw: true
         });
+
+        console.log(title);
         return res.status(200).json({ "approve": "ok", "title": title });
     } catch (err) {
         console.error(err);
