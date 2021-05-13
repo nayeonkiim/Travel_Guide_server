@@ -80,26 +80,6 @@ router.post('/', async (req, res, next) => {
         }).then(place => {
             let nearplacename = place.map(p => p.name);
             console.log(nearplacename);
-            //let compare = [];
-            // let min = 0, minObj = 0;
-            // place.forEach(x => {
-            //     value = Math.sqrt(Math.pow(latitude - x.latitude, 2) + Math.pow(longitude - x.longitude, 2));
-            //     compare.push({ 'id': x.id, 'value': value });
-            // });
-
-            // if (compare.length != 0) {
-            //     //가까운 거리 찾기
-            //     min = compare[0].value;
-            //     minObj = compare[0];
-            //     for (let i = 1; i < compare.length; i++) {
-            //         if (compare[i].value < min) {
-            //             min = compare[i].value;
-            //             minObj = compare[i];
-            //         }
-            //     }
-            //     //가장 거리 가까운
-            //     nearSubPlace.push(minObj.id);
-            // }
             nearSubPlace = common.nearPlace(latitude, longitude, place);
         });
         console.log("가까운 subPlace: " + nearSubPlace);
@@ -323,27 +303,6 @@ router.get('/places/:place', async (req, res, next) => {
 
 });
 
-
-router.get('/test/:name', function (req, res, next) {
-    var name = req.params.name;
-    console.log(name);
-    var url = 'http://api.data.go.kr/openapi/tn_pubr_public_trrsrt_api';
-    var queryParams = '?' + encodeURIComponent('ServiceKey') + '=FWXTdtDpbejCSXg3tupHeLkAC2IX3kr%2B0Z%2BicMhcfJ0ETaurzwObU0YL%2F6OGYlZwU9wMUJzBPeLjoCKnIx0xJA%3D%3D'; /* Service Key*/
-    queryParams += '&' + encodeURIComponent('pageNo') + '=' + encodeURIComponent('0'); /* */
-    queryParams += '&' + encodeURIComponent('numOfRows') + '=' + encodeURIComponent('100'); /* */
-    queryParams += '&' + encodeURIComponent('type') + '=' + encodeURIComponent('xml'); /* */
-    queryParams += '&' + encodeURIComponent('trrsrtNm') + '=' + encodeURIComponent(name); /* */
-
-    request({
-        url: url + queryParams,
-        method: 'GET'
-    }, function (error, response, body) {
-        console.log('Status', response.statusCode);
-        console.log('Headers', JSON.stringify(response.headers));
-        console.log('Reponse received', body);
-        return res.status(response.statusCode).json(body);
-    });
-});
 
 
 module.exports = router;
