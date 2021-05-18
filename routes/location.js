@@ -168,7 +168,7 @@ router.get('/reload/:title/:date', async (req, res, next) => {
 
 router.get('/:title', async (req, res, next) => {
     const title = req.params.title;
-    console.log('멤버들 위치로 sub 장소 평균시간 업데이트 라우터 호출');
+    console.log('자유시간 종료 버튼 눌러서 멤버들 위치로 sub 장소 평균시간 업데이트 라우터 호출');
     let date = new Date();
     let today = '';
     //오늘 날짜 가져오기
@@ -190,7 +190,8 @@ router.get('/:title', async (req, res, next) => {
     try {
         //title로 groupId 구하기
         const result = await common.findMem(title);
-        console.log(result[0]);
+
+        //role이 member인 경우만 userMap에 저장
         for (let i = 0; i < result.length; i++) {
             if (result[i].role != 'manager') {
                 userMap.push(result[i].id);
@@ -200,18 +201,16 @@ router.get('/:title', async (req, res, next) => {
 
         let timeSentArr = [];
         let timeSentTotalArr = [];
-        //user 별로 방문한 공간과 
+        //user 별로 방문한 공간 find
         for (let i = 0; i < userMap.length; i++) {
-            const result = await TourSubPlace.findAll({
+            const result = await Location.findAll({
                 include: [{
-                    model: Location,
-                    where: { 'UserId': userMap[i] },
-                    attributes: ['time', 'UserId'],
-                    order: ['id']
+                    model: TourSubLocation
                 }],
-                attributes: ['id'],
+                where: { date: today, 'UserId': userMap[i] },
                 raw: true
             }).then(result => {
+                console.log(result);
                 let idx = 0;
 
                 for (let k = 0; k < result.length; k++) {
@@ -261,11 +260,11 @@ router.get('/:title', async (req, res, next) => {
             console.log("spend: " + spend);
             //subPlace에 대한 컬럼 없으면 생성
 
-            const time = await Time.create({
-                total: spend,
-                UserId: timeSentTotalArr[t][0].userId,
-                TourSubPlaceId: timeSentTotalArr[t][0].toursubplaceid
-            });
+            // const time = await Time.create({
+            //     total: spend,
+            //     UserId: timeSentTotalArr[t][0].userId,
+            //     TourSubPlaceId: timeSentTotalArr[t][0].toursubplaceid
+            // });
         }
         return res.status(200).json(approve);
     } catch (err) {
