@@ -271,7 +271,7 @@ router.get('/:title/:tourPlace', async (req, res, next) => {
 });
 
 
-router.get('/places/:place', async (req, res, next) => {
+router.get('/:place', async (req, res, next) => {
     const place = decodeURIComponent(req.params.place);
     console.log(place);
     try {
