@@ -205,46 +205,26 @@ router.get('/:title', async (req, res, next) => {
         for (let i = 0; i < userMap.length; i++) {
             const result = await Location.findAll({
                 include: [{
-                    model: TourSubLocation
+                    model: TourSubLocation,
+                    where: { id: { [Op.ne]: null } }
                 }],
                 where: { date: today, 'UserId': userMap[i] },
-                raw: true
+
             }).then(result => {
-                console.log(result);
                 let idx = 0;
+                //console.log(result);
 
-                for (let k = 0; k < result.length; k++) {
-                    if (result[k].length == 0) continue;
-                    console.log(result[k]);
-                    let string = JSON.stringify(result[k]);
-
-                    let arr_st = string.split(',');
-                    let last = arr_st[1];
-                    last = last.split(':');
-                    let selecttime = { 'toursubplaceid': result[k].id, 'time': last[1].substr(1) + ':' + last[2] + ':' + last[3].substr(0, last[3].length - 1), 'userId': userMap[i] };
-
-                    if (k == 0) {
-                        timeSentArr.push(selecttime);
-                        idx = result[k].id;
-                    } else {
-                        if (result[k].id == idx) {
-                            timeSentArr.push(selecttime);
-                        } else {
-                            timeSentTotalArr.push(timeSentArr);
-                            timeSentArr = [];
-                            timeSentArr.push(selecttime);
-                            idx = result[k].id;
-                        }
-
-                        if (k == result.length - 1) {
-                            timeSentTotalArr.push(timeSentArr);
-                            timeSentArr = [];
-                        }
-                    }
+                if (result.length != 0) {
+                    //맨처음 시간, 종료 시간만 저장
+                    let first = { 'toursubplaceid': result[0].dataValues.TourSubLocations[0].TourSubPlaceId, 'time': result[0].time, 'userId': result[0].UserId };
+                    let end = { 'toursubplaceid': result[result.length - 1].dataValues.TourSubLocations[0].TourSubPlaceId, 'time': result[result.length - 1].time, 'userId': result[result.length - 1].UserId };
+                    timeSentArr.push(first);
+                    timeSentArr.push(end);
+                    timeSentTotalArr.push(timeSentArr);
                 }
-                timeSentArr = [];
             });
         }
+
         console.log(timeSentTotalArr);
 
         let count = 0;
@@ -260,11 +240,11 @@ router.get('/:title', async (req, res, next) => {
             console.log("spend: " + spend);
             //subPlace에 대한 컬럼 없으면 생성
 
-            // const time = await Time.create({
-            //     total: spend,
-            //     UserId: timeSentTotalArr[t][0].userId,
-            //     TourSubPlaceId: timeSentTotalArr[t][0].toursubplaceid
-            // });
+            const time = await Time.create({
+                total: spend,
+                UserId: timeSentTotalArr[t][0].userId,
+                TourSubPlaceId: timeSentTotalArr[t][0].toursubplaceid
+            });
         }
         return res.status(200).json(approve);
     } catch (err) {
