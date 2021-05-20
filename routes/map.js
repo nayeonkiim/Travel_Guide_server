@@ -162,14 +162,12 @@ router.post('/', async (req, res, next) => {
             }
         });
 
-        //console.log(totalMem);
-        console.log(necessary);
-
         let avgTime = [];
         //머문 시간 평균 구하기
 
         var k = 0;
         let mapUserId = necessary.map(ne => ne.UserId);
+        console.log(mapUserId);
         mapUserId = mapUserId.filter(ne => {
             if (ne != k) {
                 k = ne;
@@ -180,6 +178,8 @@ router.post('/', async (req, res, next) => {
         console.log("mapUserId : ");
         console.log(mapUserId);
 
+        let timeArr = [];
+        let totaltimeArr = [];
         for (let i = 0; i < subPlace.length; i++) {
             for (let j = 0; j < mapUserId.length; j++) {
                 console.log(subPlace[i].name);
@@ -188,31 +188,38 @@ router.post('/', async (req, res, next) => {
                 });
 
                 if (times == undefined || times == null || times == 0) continue;
-                //동일한 subPlace 시간 합산
-                let totalTime = times.map(t => t.total).reduce((a, b) => a + b, 0);
-                let totalCount = times.length
-
-                const avg = parseInt(totalTime / totalCount);
-                console.log(avg);
-
-                var time = Math.floor((avg % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                var min = Math.floor((avg % (1000 * 60 * 60)) / (1000 * 60));
-                var sec = Math.floor((avg % (1000 * 60)) / 1000);
-                avgTime.push({ 'name': subPlace[i].name, 'avg': time + "시간 " + min + "분 " + sec + "초" });
+                console.log(times);
+                timeArr.subPlace[i] += times.total;
+                timeArr.count += 1;
             }
+
+            totaltimeArr.push(timeArr);
         }
 
-        //가보지 않은 관광지인 경우 모두 null로 보냄
-        if (subPlace.length == 0) subPlace = null;
-        if (totalMem.length == 0) totalMem = null;
-        if (avgTime.length == 0) avgTime = null;
+        console.log(totaltimeArr);
+
+        //동일한 subPlace 시간 합산
+        // let totalTime = times.map(t => t.total).reduce((a, b) => a + b, 0);
+        // let totalCount = times.length
+
+        // const avg = parseInt(totalTime / totalCount);
+        // console.log(avg);
+
+        // var time = Math.floor((avg % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        // var min = Math.floor((avg % (1000 * 60 * 60)) / (1000 * 60));
+        // var sec = Math.floor((avg % (1000 * 60)) / 1000);
+        // avgTime.push({ 'name': subPlace[i].name, 'avg': time + "시간 " + min + "분 " + sec + "초" });
+        // //가보지 않은 관광지인 경우 모두 null로 보냄
+        // if (subPlace.length == 0) subPlace = null;
+        // if (totalMem.length == 0) totalMem = null;
+        // if (avgTime.length == 0) avgTime = null;
 
         //웹에서 시각화
         //res.render('map', { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, avgTime: avgTime });
         const sending = { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, avgTime: avgTime };
         console.log(sending);
 
-        return res.status(200).json({ place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, avgTime: avgTime });
+        //return res.status(200).json({ place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, avgTime: avgTime });
 
     } catch (err) {
         console.error(err);
