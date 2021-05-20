@@ -186,28 +186,34 @@ router.post('/', async (req, res, next) => {
             for (let j = 0; j < mapUserId.length; j++) {
                 console.log(subPlace[i].name);
                 const times = await Time.findAll({
-                    where: { TourSubPlaceId: subPlace[i].id, UserId: mapUserId[j] }
+                    where: { TourSubPlaceId: subPlace[i].id, UserId: mapUserId[j] },
+                    raw: true
                 });
 
                 if (times == undefined || times == null || times == 0) continue;
                 console.log(times);
-                timeArr[subPlace[i].name] += times.total;
-                timeArr.count += 1;
+                for (let k = 0; k < times.length; k++) {
+                    timeArr[subPlace[i].name] += times[k].total;
+                    timeArr.count += 1;
+                }
             }
             totaltimeArr.push(timeArr);
             timeArr = [];
         }
-
         console.log(totaltimeArr);
 
-        for (let i = 0; i < totaltimeArr.length; i++) {
+
+        for (let i = 0; i < subPlace.length; i++) {
             //동일한 subPlace 시간 합산
-            let totalTime = totaltimeArr[0][subPlace[i].name];
-            let totalCount = totaltimeArr[0].count;
+            let totalTime = totaltimeArr[i][subPlace[i].name];
+            console.log(totalTime);
+            let totalCount = totaltimeArr[i].count;
+            console.log(totalCount);
 
             const avg = parseInt(totalTime / totalCount);
-            console.log(avg);
+            console.log("avg: " + avg);
 
+            if (isNaN(avg)) continue;
             var time = Math.floor((avg % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             var min = Math.floor((avg % (1000 * 60 * 60)) / (1000 * 60));
             var sec = Math.floor((avg % (1000 * 60)) / 1000);
