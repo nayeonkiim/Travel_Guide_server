@@ -166,8 +166,9 @@ router.get('/reload/:title/:date', async (req, res, next) => {
     }
 });
 
-router.get('/:title', async (req, res, next) => {
+router.get('/:title/:tourPlace', async (req, res, next) => {
     const title = req.params.title;
+    const tourPlace = req.params.tourPlace;
     console.log('자유시간 종료 버튼 눌러서 멤버들 위치로 sub 장소 평균시간 업데이트 라우터 호출');
     let date = new Date();
     let today = '';
@@ -199,33 +200,49 @@ router.get('/:title', async (req, res, next) => {
         }
         console.log(userMap);
 
+        //tourPlace 의 subtourPlace에 해당하는 위치만 가져오도록
+        const placeId = await TourPlace.findOne({
+            where: { name: tourPlace },
+            attribute: ['id'],
+            raw: true
+        });
+        console.log("placeId: " + placeId.id);
+        const subPlaces = await TourSubPlace.findAll({
+            where: { TourPlaceId: placeId.id },
+            attributes: ['id'],
+            raw: true
+        });
+
+
         let timeSentArr = [];
         let timeSentTotalArr = [];
-        //user 별로 방문한 공간 find
+        //user 별로 방문 서브 관광지 별로 방문한 공간 find
         for (let i = 0; i < userMap.length; i++) {
-            const result = await Location.findAll({
-                include: [{
-                    model: TourSubLocation,
-                    where: { id: { [Op.ne]: null } }
-                }],
-                where: { date: today, 'UserId': userMap[i] },
-
-            }).then(result => {
-                let idx = 0;
-                //console.log(result);
-
-                if (result.length != 0) {
-                    //맨처음 시간, 종료 시간만 저장
-                    let first = { 'toursubplaceid': result[0].dataValues.TourSubLocations[0].TourSubPlaceId, 'time': result[0].time, 'userId': result[0].UserId };
-                    let end = { 'toursubplaceid': result[result.length - 1].dataValues.TourSubLocations[0].TourSubPlaceId, 'time': result[result.length - 1].time, 'userId': result[result.length - 1].UserId };
-                    timeSentArr.push(first);
-                    timeSentArr.push(end);
-                    timeSentTotalArr.push(timeSentArr);
-                }
-            });
+            for (let j = 0; j < subPlaces.length; j++) {
+                console.log("userId: " + userMap[i] + " subPlaceId: " + subPlaces[j].id);
+                const result = await Location.findAll({
+                    include: [{
+                        model: TourSubLocation,
+                        where: { id: { [Op.ne]: null }, TourSubPlaceId: subPlaces[j].id }
+                    }],
+                    where: { date: today, 'UserId': userMap[i] },
+                }).then(result => {
+                    //console.log(result);
+                    if (result.length != 0) {
+                        //맨처음 시간, 종료 시간만 저장
+                        let first = { 'toursubplaceid': result[0].dataValues.TourSubLocations[0].TourSubPlaceId, 'time': result[0].time, 'userId': result[0].UserId };
+                        let end = { 'toursubplaceid': result[result.length - 1].dataValues.TourSubLocations[0].TourSubPlaceId, 'time': result[result.length - 1].time, 'userId': result[result.length - 1].UserId };
+                        timeSentArr.push(first);
+                        timeSentArr.push(end);
+                        timeSentTotalArr.push(timeSentArr);
+                    }
+                    timeSentArr = [];
+                });
+            }
         }
-
         console.log(timeSentTotalArr);
+
+
 
         let count = 0;
         let arr_curId = [];
