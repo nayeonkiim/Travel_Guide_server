@@ -52,8 +52,8 @@ router.post('/', async (req, res, next) => {
         }).then(async el => {
 
             if (gender == 'all' && age == 'all') {
-                //console.log(el);
-                return el;
+                necessary = el;
+                return necessary;
             } else {
                 for (let t = 0; t < el.length; t++) {
                     //해당 관광지에 갔던 user들을 찾아
