@@ -39,6 +39,8 @@ router.post('/', async (req, res, next) => {
 
         let member = [];
         let totalMem = [];
+        let necessary = [];
+
         //입력한 관광지에 다녀간 user 모두 select
         const findLoc = await Location.findAll({
             include: [{
@@ -48,18 +50,20 @@ router.post('/', async (req, res, next) => {
             attribute: ['latitude', 'longitude', 'UserId'],
             order: ['UserId', 'time', 'date'],
         }).then(async el => {
-            let necessary = [];
+
             if (gender == 'all' && age == 'all') {
                 //console.log(el);
                 return el;
             } else {
                 for (let t = 0; t < el.length; t++) {
+                    //해당 관광지에 갔던 user들을 찾아
                     const addData = await User.findOne({
                         where: { id: el[t].UserId },
                         //attributes: ['id', 'gender', 'birth']
                     });
                     console.log(addData);
 
+                    //나이를 계산
                     let calage = calAge(addData.birth.substr(0, 4));
                     //둘 다 선택된 경우
                     if (gender != 'all' && age != 'all') {
@@ -158,28 +162,44 @@ router.post('/', async (req, res, next) => {
             }
         });
 
-        console.log(totalMem);
+        //console.log(totalMem);
+        console.log(necessary);
 
         let avgTime = [];
         //머문 시간 평균 구하기
+
+        var k = 0;
+        let mapUserId = necessary.map(ne => ne.UserId);
+        mapUserId = mapUserId.filter(ne => {
+            if (ne != k) {
+                k = ne;
+                return ne;
+            }
+        });
+
+        console.log("mapUserId : ");
+        console.log(mapUserId);
+
         for (let i = 0; i < subPlace.length; i++) {
-            console.log(subPlace[i].name);
-            const times = await Time.findAll({
-                where: { TourSubPlaceId: subPlace[i].id }
-            });
+            for (let j = 0; j < mapUserId.length; j++) {
+                console.log(subPlace[i].name);
+                const times = await Time.findAll({
+                    where: { TourSubPlaceId: subPlace[i].id, UserId: mapUserId[j] }
+                });
 
-            if (times == undefined || times == null || times == 0) continue;
-            //동일한 subPlace 시간 합산
-            let totalTime = times.map(t => t.total).reduce((a, b) => a + b, 0);
-            let totalCount = times.length
+                if (times == undefined || times == null || times == 0) continue;
+                //동일한 subPlace 시간 합산
+                let totalTime = times.map(t => t.total).reduce((a, b) => a + b, 0);
+                let totalCount = times.length
 
-            const avg = parseInt(totalTime / totalCount);
-            console.log(avg);
+                const avg = parseInt(totalTime / totalCount);
+                console.log(avg);
 
-            var time = Math.floor((avg % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            var min = Math.floor((avg % (1000 * 60 * 60)) / (1000 * 60));
-            var sec = Math.floor((avg % (1000 * 60)) / 1000);
-            avgTime.push({ 'name': subPlace[i].name, 'avg': time + "시간 " + min + "분 " + sec + "초" });
+                var time = Math.floor((avg % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                var min = Math.floor((avg % (1000 * 60 * 60)) / (1000 * 60));
+                var sec = Math.floor((avg % (1000 * 60)) / 1000);
+                avgTime.push({ 'name': subPlace[i].name, 'avg': time + "시간 " + min + "분 " + sec + "초" });
+            }
         }
 
         //가보지 않은 관광지인 경우 모두 null로 보냄
