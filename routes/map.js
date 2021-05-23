@@ -222,9 +222,9 @@ router.post('/', async (req, res, next) => {
 
 
         //가보지 않은 관광지인 경우 모두 null로 보냄
-        if (subPlace.length == 0) subPlace = null;
-        if (totalMem.length == 0) totalMem = null;
-        if (avgTime.length == 0) avgTime = null;
+        if (subPlace.length == 0) subPlace = [];
+        if (totalMem.length == 0) totalMem = [];
+        if (avgTime.length == 0) avgTime = [];
 
         //웹에서 시각화
         //res.render('map', { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, avgTime: avgTime });
