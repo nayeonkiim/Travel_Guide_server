@@ -157,7 +157,7 @@ router.post('/', async (req, res, next) => {
             for (let i = 0; i < member.length; i++) {
                 //가장 많이 간 경로 순서대로 위도경도 값 넣어주기
                 if (e.id == member[i]) {
-                    totalMem.push({ latitude: e.latitude, longitude: e.longitude });
+                    totalMem.push({ name: e.name, latitude: e.latitude, longitude: e.longitude });
                 }
             }
         });
