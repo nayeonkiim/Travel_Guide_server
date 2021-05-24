@@ -18,6 +18,74 @@ router.get('/plus', (req, res, next) => {
     res.render('plus');
 });
 
+router.get('/monitor', (req, res, next) => {
+    res.render('place');
+});
+
+router.post('/monitor', async (req, res, next) => {
+    console.log('패키지 여행객들 모니터링 라우터 호출됨');
+    const place = req.body.place;
+
+    try {
+        //place의 위도경도 값 조회
+        const placeLoc = await TourPlace.findAll({
+            include: {
+                model: Location,
+                attributes: ['date', 'time', 'latitude', 'longitude', 'UserId'],
+                order: ['date', 'UserId', 'time'],
+                throw: TourLocation
+            },
+            where: { name: place },
+            attributes: ['latitude', 'longitude']
+        });
+
+        const center = { latitude: placeLoc[0].latitude, longitude: placeLoc[0].longitude };
+        console.log("tourplace 위도 경도 : " + center.latitude + ", " + center.longitude);
+
+        //user id만 따로 빼내기
+        const loc = placeLoc.map(loc => loc.Locations);
+        let ids = loc[0].map(place => place.UserId);
+
+        let before = 0;
+        ids = ids.filter(ne => {
+            if (ne != before) {
+                before = ne;
+                return ne;
+            }
+        });
+
+        console.log(ids);
+
+        let userRoutes = [];
+        let perUserRoutes = [];
+        let count = 0;
+        //place의 Id와 연관된 location 객체 user별로 select
+        for (let i = 0; i < ids.length; i++) {
+            for (let j = count; j < loc[0].length; j++) {
+                let gps = [];
+                //UserId 동일한 것만 따로 넣기
+                if (ids[i] == loc[0][j].UserId) {
+                    gps.latitude = loc[0][j].latitude;
+                    gps.longitude = loc[0][j].longitude;
+                    gps.UserId = loc[0][j].UserId;
+                    perUserRoutes.push(gps);
+                } else {
+                    count = j;
+                    break;
+                }
+            }
+
+            userRoutes.push(perUserRoutes);
+            perUserRoutes = [];
+        }
+        console.log(userRoutes);
+        res.render('monitor', { center: center, routes: userRoutes, leng: userRoutes.length });
+    } catch (err) {
+        console.error(err);
+        next();
+    }
+});
+
 router.post('/', async (req, res, next) => {
     console.log('위치검색 라우터 호출됨');
     const place = req.body.place;
@@ -210,10 +278,10 @@ router.post('/', async (req, res, next) => {
             let totalCount = totaltimeArr[i].count;
             console.log(totalCount);
 
-            const avg = parseInt(totalTime / totalCount);
+            let avg = parseInt(totalTime / totalCount);
             console.log("avg: " + avg);
 
-            if (isNaN(avg)) continue;
+            if (isNaN(avg)) avg = 0;
             var time = Math.floor((avg % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             var min = Math.floor((avg % (1000 * 60 * 60)) / (1000 * 60));
             var sec = Math.floor((avg % (1000 * 60)) / 1000);
