@@ -35,6 +35,19 @@ router.post('/', async (req, res, next) => {
         })
         console.log(userInfo);
 
+        //바로 이전의 위도경도 가져오기
+        const lastest = await Location.findOne({
+            where: { UserId: userInfo.id },
+            order: ['date', 'time']
+        });
+        console.log(latest);
+
+        //바로 이전 위도경도와 현재 위치와 차이가 많이 나면 현재위치 조정
+        if (latest.latitude - latitude > 0.0002 && latest.longitude - longitude > 0.0002) {
+            latitude += 0.0001;
+            longitude += 0.0001;
+        }
+
         //위도,경도(0.01보다 오차범위 작은) 근처 관광지 찾기
         const whichPlace = await TourPlace.findAll({
             where: {
