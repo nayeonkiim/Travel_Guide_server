@@ -58,7 +58,7 @@ router.post('/', async (req, res, next) => {
         });
 
 
-        //위도,경도(0.002보다 오차범위 작은) 근처 sub 관광지 찾기
+        //위도,경도(0.0005보다 오차범위 작은) 근처 sub 관광지 찾기
         const whichSubPlace = await TourSubPlace.findAll({
             where: {
                 [Op.and]: {
@@ -166,9 +166,11 @@ router.get('/reload/:title/:date', async (req, res, next) => {
     }
 });
 
-router.get('/:title/:tourPlace', async (req, res, next) => {
-    const title = req.params.title;
-    const tourPlace = req.params.tourPlace;
+router.post('/freetimeEnd', async (req, res, next) => {
+    const title = req.body.title;
+    const latitude = req.body.latitude;
+    const longitude = req.body.longitude;
+
     console.log('자유시간 종료 버튼 눌러서 멤버들 위치로 sub 장소 평균시간 업데이트 라우터 호출');
     let date = new Date();
     let today = '';
@@ -187,6 +189,7 @@ router.get('/:title/:tourPlace', async (req, res, next) => {
     console.log(today);
 
     let userMap = [];
+    let nearPlace = [];
     let approve = { "approve": "ok" };
     try {
         //title로 groupId 구하기
@@ -200,15 +203,28 @@ router.get('/:title/:tourPlace', async (req, res, next) => {
         }
         console.log(userMap);
 
-        //tourPlace 의 subtourPlace에 해당하는 위치만 가져오도록
-        const placeId = await TourPlace.findOne({
-            where: { name: tourPlace },
-            attribute: ['id'],
-            raw: true
+        const whichPlace = await TourPlace.findAll({
+            where: {
+                latitude: {
+                    [Op.and]: {
+                        [Op.gt]: latitude - 0.01,
+                        [Op.lt]: latitude + 0.01
+                    }
+                },
+                longitude: {
+                    [Op.and]: {
+                        [Op.gt]: longitude - 0.01,
+                        [Op.lt]: longitude + 0.01
+                    }
+                }
+            }
+        }).then(place => {
+            nearPlace = common.nearPlace(latitude, longitude, place);
+            console.log("가장 가까운 관광지: " + nearPlace);
         });
-        console.log("placeId: " + placeId.id);
+
         const subPlaces = await TourSubPlace.findAll({
-            where: { TourPlaceId: placeId.id },
+            where: { TourPlaceId: nearPlace },
             attributes: ['id'],
             raw: true
         });
