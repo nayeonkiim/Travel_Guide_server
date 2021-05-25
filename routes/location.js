@@ -71,8 +71,8 @@ router.post('/', async (req, res, next) => {
                     },
                     longitude: {
                         [Op.and]: {
-                            [Op.gt]: longitude - 0.005,
-                            [Op.lt]: longitude + 0.005
+                            [Op.gt]: longitude - 0.0005,
+                            [Op.lt]: longitude + 0.0005
                         }
                     }
                 }
@@ -219,6 +219,7 @@ router.post('/freetimeEnd', async (req, res, next) => {
                 }
             }
         }).then(place => {
+            console.log(place);
             nearPlace = common.nearPlace(latitude, longitude, place);
             console.log("가장 가까운 관광지: " + nearPlace);
         });
