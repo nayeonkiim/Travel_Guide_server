@@ -32,12 +32,17 @@ router.post('/monitor', async (req, res, next) => {
             include: {
                 model: Location,
                 attributes: ['date', 'time', 'latitude', 'longitude', 'UserId'],
-                order: ['date', 'UserId', 'time'],
                 throw: TourLocation
             },
             where: { name: place },
-            attributes: ['latitude', 'longitude']
+            attributes: ['latitude', 'longitude'],
+            order: [
+                [Location, 'date'],
+                [Location, 'UserId', 'desc'],
+                [Location, 'time']
+            ],
         });
+        console.log(placeLoc);
 
         const center = { latitude: placeLoc[0].latitude, longitude: placeLoc[0].longitude };
         console.log("tourplace 위도 경도 : " + center.latitude + ", " + center.longitude);
@@ -295,11 +300,11 @@ router.post('/', async (req, res, next) => {
         if (avgTime.length == 0) avgTime = [];
 
         //웹에서 시각화
-        //res.render('map', { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, avgTime: avgTime });
+        res.render('map', { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, avgTime: avgTime });
         const sending = { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, avgTime: avgTime };
         console.log(sending);
 
-        return res.status(200).json({ place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, avgTime: avgTime });
+        //return res.status(200).json({ place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, avgTime: avgTime });
 
     } catch (err) {
         console.error(err);
