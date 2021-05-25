@@ -21,20 +21,29 @@
         </div>
         {% endfor %}
 
+        {% for sub in subPlace %}
+        <input type="hidden" name="subPlaceLat" value={{sub.latitude}}>
+        <input type="hidden" name="subPlaceLong" value={{sub.longitude}}>
+        <input type="hidden" id="subPlaceName" name="subPlaceName" value={{sub.name}}>
+        {% endfor %}
+
         <input type="hidden" name="center" value={{center.latitude}}>
         <input type="hidden" name="center" value={{center.longitude}}>
     </div>
-
+    <p id="result"></p>
 
     <script type="text/javascript"
-        src="//dapi.kakao.com/v2/maps/sdk.js?appkey="></script>
+        src="//dapi.kakao.com/v2/maps/sdk.js?appkey=인증키"></script>
     <script>
+
         var leng = document.getElementById('leng').value;
 
         var center = document.getElementsByName('center');
         console.log(center[0].value);
         console.log(center[1].value);
 
+        var array_subPlaceLat = document.getElementsByName("subPlaceLat");
+        var array_subPlaceLong = document.getElementsByName("subPlaceLong");
         var mapContainer = document.getElementById('map'), // 지도를 표시할 div 
             mapOption = {
                 center: new kakao.maps.LatLng(center[0].value, center[1].value), // 지도의 중심좌표
@@ -43,6 +52,46 @@
 
         var childern = [];
         var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
+        // 지도에 교통정보를 표시하도록 지도타입을 추가합니다
+        map.addOverlayMapTypeId(kakao.maps.MapTypeId.TRAFFIC);
+
+        kakao.maps.event.addListener(map, 'click', function (mouseEvent) {
+
+            // 클릭한 위도, 경도 정보를 가져옵니다 
+            var latlng = mouseEvent.latLng;
+
+            var message = '클릭한 위치의 위도는 ' + latlng.getLat() + ' 이고, ';
+            message += '경도는 ' + latlng.getLng() + ' 입니다';
+
+            var resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = message;
+
+        });
+
+        var marker = new kakao.maps.Marker(), // 클릭한 위치를 표시할 마커입니다
+            infowindow = new kakao.maps.InfoWindow({ zindex: 1 }); // 클릭한 위치에 대한 주소를 표시할 인포윈도우입니다
+
+        var positions = [];
+        // 마커를 표시할 위치와 title 객체 배열입니다 
+        for (var i = 0; i < array_subPlaceLat.length; i++) {
+            // console.log(array_subPlaceLat[i].value);
+            // console.log(array_subPlaceLong[i].value);
+            var aJson = new Object();
+            aJson.title = i;
+            aJson.latlng = new kakao.maps.LatLng(array_subPlaceLat[i].value, array_subPlaceLong[i].value);
+            positions.push(aJson);
+        }
+        console.log(positions);
+
+        for (var i = 0; i < positions.length; i++) {
+            // 마커를 생성합니다
+            var marker = new kakao.maps.Marker({
+                map: map, // 마커를 표시할 지도
+                position: positions[i].latlng, // 마커를 표시할 위치
+                title: positions[i].title, // 마커의 타이틀, 마커에 마우스를 올리면 타이틀이 표시됩니다
+            });
+
+        }
 
         var linePath = [];
         // 선을 구성하는 좌표 배열입니다. 이 좌표들을 이어서 선을 표시합니다
@@ -68,6 +117,8 @@
             linePath = [];
             childern = [];
         }
+
+
     </script>
 </body>
 
