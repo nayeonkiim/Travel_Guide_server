@@ -35,7 +35,7 @@ router.post('/monitor', async (req, res, next) => {
                 throw: TourLocation
             },
             where: { name: place },
-            attributes: ['latitude', 'longitude'],
+            attributes: ['id', 'latitude', 'longitude'],
             order: [
                 [Location, 'date'],
                 [Location, 'UserId', 'desc'],
@@ -84,7 +84,16 @@ router.post('/monitor', async (req, res, next) => {
             perUserRoutes = [];
         }
         console.log(userRoutes);
-        res.render('monitor', { center: center, routes: userRoutes, leng: userRoutes.length });
+
+        //TourPlace와 연관된 TourSubPlace 의 위도,경도 값 가져오기
+        let subPlace = await TourSubPlace.findAll({
+            where: { TourPlaceId: placeLoc[0].id },
+            attributes: ['latitude', 'longitude', 'name'],
+            raw: true
+        });
+        console.log(subPlace);
+
+        res.render('monitor', { center: center, routes: userRoutes, leng: userRoutes.length, subPlace: subPlace });
     } catch (err) {
         console.error(err);
         next();
