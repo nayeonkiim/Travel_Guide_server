@@ -46,6 +46,9 @@ router.post('/', async (req, res, next) => {
         if (latest.latitude - latitude > 0.0002 && latest.longitude - longitude > 0.0002) {
             latitude += 0.0001;
             longitude += 0.0001;
+        } else if (latitude - latest.latitude > 0.0002 && longitude - latest.longitude > 0.0002) {
+            latitude -= 0.0001;
+            longitude -= 0.0001;
         }
 
         //위도,경도(0.01보다 오차범위 작은) 근처 관광지 찾기
