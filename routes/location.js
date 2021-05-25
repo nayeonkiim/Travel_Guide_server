@@ -168,8 +168,8 @@ router.get('/reload/:title/:date', async (req, res, next) => {
 
 router.post('/freetimeEnd', async (req, res, next) => {
     const title = req.body.title;
-    const latitude = req.body.latitude;
-    const longitude = req.body.longitude;
+    const latitude = parseFloat(req.body.latitude);
+    const longitude = parseFloat(req.body.longitude);
 
     console.log('자유시간 종료 버튼 눌러서 멤버들 위치로 sub 장소 평균시간 업데이트 라우터 호출');
     let date = new Date();
