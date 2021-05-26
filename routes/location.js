@@ -334,7 +334,7 @@ router.get('/:place', async (req, res, next) => {
 
 });
 
-router.post('/collectDir', (req, res, next) => {
+router.post('/collectDir', async (req, res, next) => {
     console.log('이동경로 수집 라우터 호출');
     //날짜,시간,userId,위도,경도 값이 들어온다.
     const latitude = parseFloat(req.body.latitude);
