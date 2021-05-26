@@ -8,9 +8,10 @@ const Group = require('../models/group');
 const Location = require('../models/location');
 const TourPlace = require('../models/tourplace');
 const Time = require('../models/time');
+const CollectDir = require('../models/collectDir');
 const { Op } = require("sequelize");
 const common = require('../lib/common');
-const request = require('request');
+
 
 
 router.post('/', async (req, res, next) => {
@@ -23,7 +24,6 @@ router.post('/', async (req, res, next) => {
     const longitude = parseFloat(req.body.longitude);
 
     console.log(req.body);
-    //트랜잭션 안에서 시작
     let approve = { "approve": "ok" };
     let nearSubPlace = [];
     let nearPlace = [];
@@ -42,13 +42,15 @@ router.post('/', async (req, res, next) => {
         });
         console.log(latest);
 
-        //바로 이전 위도경도와 현재 위치와 차이가 많이 나면 현재위치 조정
-        if (latest.latitude - latitude > 0.0002 && latest.longitude - longitude > 0.0002) {
-            latitude += 0.0001;
-            longitude += 0.0001;
-        } else if (latitude - latest.latitude > 0.0002 && longitude - latest.longitude > 0.0002) {
-            latitude -= 0.0001;
-            longitude -= 0.0001;
+        if (latest != null) {
+            //바로 이전 위도경도와 현재 위치와 차이가 많이 나면 현재위치 조정
+            if (latest.latitude - latitude > 0.0002 && latest.longitude - longitude > 0.0002) {
+                latitude += 0.0001;
+                longitude += 0.0001;
+            } else if (latitude - latest.latitude > 0.0002 && longitude - latest.longitude > 0.0002) {
+                latitude -= 0.0001;
+                longitude -= 0.0001;
+            }
         }
 
         //위도,경도(0.01보다 오차범위 작은) 근처 관광지 찾기
@@ -332,6 +334,41 @@ router.get('/:place', async (req, res, next) => {
 
 });
 
+router.post('/collectDir', (req, res, next) => {
+    console.log('이동경로 수집 라우터 호출');
+    //날짜,시간,userId,위도,경도 값이 들어온다.
+    const latitude = parseFloat(req.body.latitude);
+    const longitude = parseFloat(req.body.longitude);
+
+    try {
+        const result = await sequelize.transaction(async (t) => {
+            const collect = await CollectDir.create({
+                latitude,
+                longitude
+            });
+        });
+
+        //바로 이전의 위도경도 가져오기
+        const lastest = await CollectDir.findOne({
+            order: [['date', 'DESC'], ['time', 'DESC']]
+        });
+        console.log(latest);
+
+        if (latest != null) {
+            //바로 이전 위도경도와 현재 위치와 차이가 많이 나면 현재위치 조정
+            if (latest.latitude - latitude > 0.0002 && latest.longitude - longitude > 0.0002) {
+                latitude += 0.0001;
+                longitude += 0.0001;
+            } else if (latitude - latest.latitude > 0.0002 && longitude - latest.longitude > 0.0002) {
+                latitude -= 0.0001;
+                longitude -= 0.0001;
+            }
+        }
+    } catch (err) {
+        console.error(err);
+        next();
+    }
+})
 
 
 module.exports = router;
