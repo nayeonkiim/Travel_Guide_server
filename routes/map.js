@@ -106,6 +106,7 @@ router.post('/', async (req, res, next) => {
     const place = req.body.place;
     const gender = req.body.gender;
     const age = req.body.age;
+
     console.log(req.body);
     //place 를 기준으로 관광지 테이블에서 해당 장소를 검색하고 중심좌표로 변경
     try {
@@ -329,12 +330,15 @@ router.post('/', async (req, res, next) => {
         if (totalMem.length == 0) totalMem = [];
         if (avgTime.length == 0) avgTime = [];
 
-        //웹에서 시각화
-        res.render('map', { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: finalDir, avgTime: avgTime });
         const sending = { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: finalDir, avgTime: avgTime };
         console.log(sending);
 
-        //return res.status(200).json({ place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, avgTime: avgTime });
+        //웹에서 시각화
+        const web = req.body.web;
+        if (web == 'yes')
+            res.render('map', { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: finalDir, avgTime: avgTime });
+        else
+            return res.status(200).json({ place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, avgTime: avgTime });
 
     } catch (err) {
         console.error(err);
