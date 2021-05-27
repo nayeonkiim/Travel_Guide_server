@@ -1,28 +1,28 @@
 const Sequelize = require('sequelize');
 
-module.exports = class CollectDir extends Sequelize.Model {
+module.exports = class Direction extends Sequelize.Model {
     static init(sequelize) {
         return super.init({
-            latitude: {
-                type: Sequelize.DOUBLE,
+            seq: {
+                type: Sequelize.STRING(30),
                 allowNull: false,
+                unique: true,
             },
-            longitude: {
-                type: Sequelize.DOUBLE,
-                allowNull: false,
+            direct: {
+                type: Sequelize.STRING(1000),
+                allowNull: false
             }
         }, {
             sequelize,
             timestamps: false,
             underscored: false,
-            modelName: 'CollectDir',
-            tableName: 'collectdir',
+            modelName: 'Direction',
+            tableName: 'directions',
             paranoid: false,
             charset: 'utf8mb4',
             collate: 'utf8mb4_general_ci',
         });
     }
 
-    static associate(db) {
-    }
+    static associate(db) { }
 }

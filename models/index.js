@@ -13,7 +13,7 @@ const TourSubLocation = require('./toursublocation');
 const Time = require('./time');
 const Route = require('./route');
 const Product = require('./product');
-const CollectDir = require('./collectDir');
+const Direction = require('./direction');
 
 const db = {};
 
@@ -33,7 +33,8 @@ db.TourSubLocation = TourSubLocation;
 db.Time = Time;
 db.Route = Route;
 db.Product = Product;
-db.CollectDir = CollectDir;
+db.Direction = Direction;
+
 
 
 User.init(sequelize);
@@ -48,7 +49,7 @@ TourSubLocation.init(sequelize);
 Time.init(sequelize);
 Route.init(sequelize);
 Product.init(sequelize);
-CollectDir.init(sequelize);
+Direction.init(sequelize);
 
 
 User.associate(db);
@@ -63,7 +64,7 @@ TourSubLocation.associate(db);
 Time.associate(db);
 Route.associate(db);
 Product.associate(db);
-CollectDir.associate(db);
+Direction.associate(db);
 
 module.exports = db;
 

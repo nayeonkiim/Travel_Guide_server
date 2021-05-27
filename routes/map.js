@@ -9,6 +9,7 @@ const TourSubLocation = require('../models/toursublocation');
 const router = express.Router();
 const { Op } = require('sequelize');
 const { sequelize } = require('../models');
+const Direction = require('../models/direction');
 
 router.get('/', (req, res, next) => {
     res.render('main');
@@ -239,10 +240,30 @@ router.post('/', async (req, res, next) => {
             for (let i = 0; i < member.length; i++) {
                 //가장 많이 간 경로 순서대로 위도경도 값 넣어주기
                 if (e.id == member[i]) {
-                    totalMem.push({ name: e.name, latitude: e.latitude, longitude: e.longitude });
+                    totalMem.push({ id: e.id, name: e.name, latitude: e.latitude, longitude: e.longitude });
                 }
             }
         });
+
+        const subPlaceIds = totalMem.map(e => e.id);
+        let finalDir = [];
+
+        for (let i = 0; i < subPlaceIds.length - 1; i++) {
+            await Direction.findOne({
+                where: { seq: subPlaceIds[i] + "," + subPlaceIds[i + 1] },
+                attribute: ['direct'],
+                raw: true
+            }).then(el => {
+                if (el != null) {
+                    let tol = el.direct.split(',');
+                    for (let i = 0; i < tol.length; i += 2) {
+                        finalDir.push({ latitude: tol[i], longitude: tol[i + 1] });
+                    }
+                }
+            });
+        }
+        console.log("findDir : ");
+        console.log(finalDir);
 
         let avgTime = [];
         //머문 시간 평균 구하기
@@ -309,8 +330,8 @@ router.post('/', async (req, res, next) => {
         if (avgTime.length == 0) avgTime = [];
 
         //웹에서 시각화
-        res.render('map', { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, avgTime: avgTime });
-        const sending = { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, avgTime: avgTime };
+        res.render('map', { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: finalDir, avgTime: avgTime });
+        const sending = { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: finalDir, avgTime: avgTime };
         console.log(sending);
 
         //return res.status(200).json({ place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, avgTime: avgTime });
