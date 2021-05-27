@@ -256,7 +256,7 @@ router.post('/', async (req, res, next) => {
                 raw: true
             }).then(el => {
                 if (el != null) {
-                    finalDir.push(totalMem[i]);
+                    
                     let tol = el.direct.split(',');
                     for (let i = 0; i < tol.length; i += 2) {
                         finalDir.push({ latitude: tol[i], longitude: tol[i + 1] });
@@ -264,7 +264,7 @@ router.post('/', async (req, res, next) => {
                 }
             });
         }
-        finalDir.push(totalMem[totalMem.length - 1]);
+  
         console.log("findDir : ");
         console.log(finalDir);
 
@@ -332,15 +332,15 @@ router.post('/', async (req, res, next) => {
         if (totalMem.length == 0) totalMem = [];
         if (avgTime.length == 0) avgTime = [];
 
-        const sending = { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: finalDir, avgTime: avgTime };
+        const sending = { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, order: finalDir, avgTime: avgTime };
         console.log(sending);
 
         //웹에서 시각화
         const web = req.body.web;
         if (web == 'yes')
-            res.render('map', { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: finalDir, avgTime: avgTime });
+            res.render('map', { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, order: finalDir, avgTime: avgTime });
         else
-            res.send({ place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: finalDir, avgTime: avgTime });
+            res.send({ place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, order: finalDir, avgTime: avgTime });
 
     } catch (err) {
         console.error(err);
