@@ -12,14 +12,17 @@ const { sequelize } = require('../models');
 const Direction = require('../models/direction');
 
 router.get('/', (req, res, next) => {
+    //main.html로 이동
     res.render('main');
 });
 
 router.get('/plus', (req, res, next) => {
+    //plus.html로 이동
     res.render('plus');
 });
 
 router.get('/monitor', (req, res, next) => {
+    //place.html로 이동
     res.render('place');
 });
 
@@ -291,6 +294,7 @@ router.post('/', async (req, res, next) => {
             timeArr.count = 0;
             for (let j = 0; j < mapUserId.length; j++) {
                 console.log(subPlace[i].name);
+                //한명의 user가 관광지 별로 머문 시간
                 const times = await Time.findAll({
                     where: { TourSubPlaceId: subPlace[i].id, UserId: mapUserId[j] },
                     raw: true
@@ -335,11 +339,12 @@ router.post('/', async (req, res, next) => {
         const sending = { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, order: finalDir, avgTime: avgTime };
         console.log(sending);
 
-        //웹에서 시각화
         const web = req.body.web;
         if (web == 'yes')
+            //웹에서 요청하는 경우
             res.render('map', { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, order: finalDir, avgTime: avgTime });
         else
+            //앱에서 요청하는 경우
             res.send({ place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, order: finalDir, avgTime: avgTime });
 
     } catch (err) {
@@ -355,7 +360,7 @@ router.post('/addPlace', async (req, res, next) => {
     const longitude = parseFloat(req.body.longitude);
 
     try {
-        //findOne으로 변경하기
+        //현재 위도경도로 부터 가까운 관광지 찾기 
         const nearPlace = await TourPlace.findAll({
             where: {
                 latitude: {

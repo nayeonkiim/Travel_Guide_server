@@ -97,6 +97,7 @@ router.post('/', async (req, res, next) => {
         }).then(place => {
             let nearplacename = place.map(p => p.name);
             console.log(nearplacename);
+            //여러개의 서브관광지 중 가장 가까운 곳 찾기
             nearSubPlace = common.nearPlace(latitude, longitude, place);
         });
         console.log("가까운 subPlace: " + nearSubPlace);
@@ -144,7 +145,6 @@ router.get('/reload/:title/:date', async (req, res, next) => {
     const date = req.params.date;
 
     try {
-
         const users = await common.findMem(title);
         const id = users.filter(user => user.role == 'member').map(user => user.id);
         const usersId = users.filter(user => user.role == 'member').map(user => user.userId);
@@ -153,6 +153,7 @@ router.get('/reload/:title/:date', async (req, res, next) => {
         console.log(usersId);
 
         let curLoc = [];
+        //group의 모든 그룹원들의 가장 최근 위치 가져오기 
         for (let i = 0; i < id.length; i++) {
             console.log(id[i]);
             let location = await Location.findOne({
