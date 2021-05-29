@@ -11,6 +11,7 @@
 </head>
 
 <body>
+    <input type="hidden" id="first" value={{first}}>
     <input type="hidden" id="place" value={{place}}>
     <input type="hidden" id="latitude" value={{latitude}}>
     <input type="hidden" id="longitude" value={{longitude}}>
@@ -48,9 +49,11 @@
                 </select>
                 <input type="button" value="검색" onclick="selectBox()" class="float-right" id="selectGengerAndAge">
             </form>
-            {% for avg in avgTime %}
-            <p>{{avg.name}} {{avg.avg}}</p>
-            {% endfor %}
+            <div id="avg-time">
+                {% for avg in avgTime %}
+                <p>{{avg.name}} {{avg.avg}}</p>
+                {% endfor %}
+            </div>
         </div>
     </div>
     <div class="map_right_wrap">
@@ -81,6 +84,10 @@
         console.log(firstSubPlace.value);
         var selectGengerAndAge = document.getElementById("selectGengerAndAge");
         var place = document.getElementById("place").value;
+        var first = document.getElementById("first").value;
+
+        if (first == 'first')
+            showMap(latitude, longitude, array_subPlaceLat, array_subPlaceLong, array_memLoc);
 
         function showMap(latitude, longitude, array_subPlaceLat, array_subPlaceLong, array_memLoc) {
             var mapContainer = document.getElementById('map'), // 지도를 표시할 div 
@@ -151,6 +158,13 @@
             }
         }
 
+        function changeAvgTime(avgTime) {
+            $('#avg-time').empty();
+            for (i in avgTime) {
+                $('#avg-time').append("<p>" + avgTime[i].name + " " + avgTime[i].avg + "</p>");
+            }
+        }
+
         var div2 = document.getElementsByClassName("div2");
         var div3 = document.getElementsByClassName("div3");
 
@@ -203,6 +217,7 @@
                     const order = res.data.order;
                     console.log(order);
 
+                    $('#first').val(res.data.first);
                     var leng = $(array_memLoc[j]).children('input');
                     var totalLen = $(array_memLoc[j]).children('input').length;
 
@@ -213,6 +228,7 @@
                         $(array_memLoc).append("<input type='hidden' name='memLong' value='" + order[j].longitude + "'></input>");
                     }
                     showMap(res.data.latitude, res.data.longitude, array_subPlaceLat, array_subPlaceLong, array_memLoc)
+                    changeAvgTime(res.data.avgTime);
                 })
         }
 
