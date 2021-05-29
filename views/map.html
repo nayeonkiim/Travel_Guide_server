@@ -11,7 +11,6 @@
 </head>
 
 <body>
-
     <input type="hidden" id="place" value={{place}}>
     <input type="hidden" id="latitude" value={{latitude}}>
     <input type="hidden" id="longitude" value={{longitude}}>
@@ -34,12 +33,12 @@
         <div>
             <form>
                 <select class="float-right" id="selectGender">
-                    <option value="">전체</option>
+                    <option value="all">전체</option>
                     <option value="1">여자</option>
                     <option value="0">남자</option>
                 </select>
                 <select class="float-right" id="selectAge">
-                    <option value="전체">전체</option>
+                    <option value="all">전체</option>
                     <option value="20">20대</option>
                     <option value="30">30대</option>
                     <option value="40">40대</option>
@@ -47,7 +46,7 @@
                     <option value="60">60대</option>
                     <option value="70">70대이상</option>
                 </select>
-                <input class="float-right" id="selectGengerAndAge" type="submit">
+                <input type="button" value="검색" onclick="selectBox()" class="float-right" id="selectGengerAndAge">
             </form>
             {% for avg in avgTime %}
             <p>{{avg.name}} {{avg.avg}}</p>
@@ -70,8 +69,7 @@
         {% endfor %}
     </div>
 
-    <script type="text/javascript"
-        src="//dapi.kakao.com/v2/maps/sdk.js?appkey="></script>
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey="></script>
 
     <script>
         var latitude = document.getElementById("latitude").value;
@@ -82,74 +80,75 @@
         var firstSubPlace = document.getElementsByName("subPlaceName")[0];
         console.log(firstSubPlace.value);
         var selectGengerAndAge = document.getElementById("selectGengerAndAge");
+        var place = document.getElementById("place").value;
 
-        var mapContainer = document.getElementById('map'), // 지도를 표시할 div 
-            mapOption = {
-                center: new kakao.maps.LatLng(latitude, longitude), // 지도의 중심좌표
-                level: 5 // 지도의 확대 레벨
-            };
+        function showMap(latitude, longitude, array_subPlaceLat, array_subPlaceLong, array_memLoc) {
+            var mapContainer = document.getElementById('map'), // 지도를 표시할 div 
+                mapOption = {
+                    center: new kakao.maps.LatLng(latitude, longitude), // 지도의 중심좌표
+                    level: 5 // 지도의 확대 레벨
+                };
 
-        var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
+            var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
 
-        var marker = new kakao.maps.Marker(), // 클릭한 위치를 표시할 마커입니다
-            infowindow = new kakao.maps.InfoWindow({ zindex: 1 }); // 클릭한 위치에 대한 주소를 표시할 인포윈도우입니다
+            var marker = new kakao.maps.Marker(), // 클릭한 위치를 표시할 마커입니다
+                infowindow = new kakao.maps.InfoWindow({ zindex: 1 }); // 클릭한 위치에 대한 주소를 표시할 인포윈도우입니다
 
-        var positions = [];
-        // 마커를 표시할 위치와 title 객체 배열입니다 
-        for (var i = 0; i < array_subPlaceLat.length; i++) {
-            // console.log(array_subPlaceLat[i].value);
-            // console.log(array_subPlaceLong[i].value);
-            var aJson = new Object();
-            aJson.title = i;
-            aJson.latlng = new kakao.maps.LatLng(array_subPlaceLat[i].value, array_subPlaceLong[i].value);
-            positions.push(aJson);
-        }
-        console.log(positions);
+            var positions = [];
+            // 마커를 표시할 위치와 title 객체 배열입니다 
+            for (var i = 0; i < array_subPlaceLat.length; i++) {
+                var aJson = new Object();
+                aJson.title = i;
+                aJson.latlng = new kakao.maps.LatLng(array_subPlaceLat[i].value, array_subPlaceLong[i].value);
+                positions.push(aJson);
+            }
+            console.log("positions: " + positions[0].latng);
 
-        for (var i = 0; i < positions.length; i++) {
-            // 마커를 생성합니다
-            var marker = new kakao.maps.Marker({
-                map: map, // 마커를 표시할 지도
-                position: positions[i].latlng, // 마커를 표시할 위치
-                title: positions[i].title, // 마커의 타이틀, 마커에 마우스를 올리면 타이틀이 표시됩니다
-            });
+            for (var i = 0; i < positions.length; i++) {
+                // 마커를 생성합니다
+                var marker = new kakao.maps.Marker({
+                    map: map, // 마커를 표시할 지도
+                    position: positions[i].latlng, // 마커를 표시할 위치
+                    title: positions[i].title, // 마커의 타이틀, 마커에 마우스를 올리면 타이틀이 표시됩니다
+                });
 
-        }
+            }
 
-        var linePath = [];
-        var idx = 0;
-        //위도 경도 값 넣어주기
-        for (var j = 0; j < array_memLoc.length; j++) {
-            var leng = $(array_memLoc[j]).children('input');
-            var loc = new kakao.maps.LatLng(0, 0);
-            leng.each(function () {
-                if (idx % 2 == 0) {
-                    loc.Ma = $(this).val();
-                }
-                else {
-                    loc.La = $(this).val();
-                    linePath.push(loc);
-                    loc = new kakao.maps.LatLng(0, 0);
-                }
-                idx++;
-            });
-            console.log(linePath);
+            var linePath = [];
+            var idx = 0;
+            //위도 경도 값 넣어주기
+            for (var j = 0; j < array_memLoc.length; j++) {
+                var leng = $(array_memLoc[j]).children('input');
+                var loc = new kakao.maps.LatLng(0, 0);
+                leng.each(function () {
+                    if (idx % 2 == 0) {
+                        loc.Ma = $(this).val();
+                    }
+                    else {
+                        loc.La = $(this).val();
+                        linePath.push(loc);
+                        loc = new kakao.maps.LatLng(0, 0);
+                    }
+                    idx++;
+                });
+                console.log(linePath);
 
-            //랜덤색 생성
-            var colorCode = "#" + Math.round(Math.random() * 0xffffff).toString(16);
-            // 지도에 표시할 선을 생성합니다
-            var polyline = new kakao.maps.Polyline({
-                path: [
-                    linePath
-                ], // 선을 구성하는 좌표배열 입니다
-                endArrow: true, // 선의 끝을 화살표로 표시되도록 설정한다
-                strokeWeight: 5, // 선의 두께 입니다
-                strokeColor: colorCode, // 선의 색깔입니다
-                strokeOpacity: 0.8, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
-                strokeStyle: 'solid' // 선의 스타일입니다
-            });
-            polyline.setMap(map);
-            linePath = [];
+                //랜덤색 생성
+                var colorCode = "#" + Math.round(Math.random() * 0xffffff).toString(16);
+                // 지도에 표시할 선을 생성합니다
+                var polyline = new kakao.maps.Polyline({
+                    path: [
+                        linePath
+                    ], // 선을 구성하는 좌표배열 입니다
+                    endArrow: true, // 선의 끝을 화살표로 표시되도록 설정한다
+                    strokeWeight: 5, // 선의 두께 입니다
+                    strokeColor: colorCode, // 선의 색깔입니다
+                    strokeOpacity: 0.8, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
+                    strokeStyle: 'solid' // 선의 스타일입니다
+                });
+                polyline.setMap(map);
+                linePath = [];
+            }
         }
 
         var div2 = document.getElementsByClassName("div2");
@@ -181,7 +180,7 @@
         init(div3);
 
         //성별, 나이별 셀렉트 박스 선택
-        selectGengerAndAge.addEventListener("click", selectBox);
+        //selectGengerAndAge.addEventListener("click", selectBox);
 
         function selectBox() {
             //나이선택, 20대,30대,...
@@ -189,10 +188,31 @@
             //성별선택, 여자 or 남자
             var age = document.getElementById("selectAge").value;
 
-            const formdata = { 'subPlace': category };
-            axios.post('', formdata)
-                .then((e) => {
+            const formdata = { 'place': place, 'gender': gen, 'age': age, 'web': 'axios' };
+            axios.post('/map', formdata)
+                .then((res) => {
+                    const subPlace = res.data.subPlace;
+                    const lat = subPlace.map(e => e.latitude);
+                    const array_subPlaceLat = [];
+                    for (i in lat)
+                        array_subPlaceLat.push({ value: lat[i] });
+                    const long = subPlace.map(e => e.longitude);
+                    const array_subPlaceLong = [];
+                    for (i in long)
+                        array_subPlaceLong.push({ value: long[i] });
+                    const order = res.data.order;
+                    console.log(order);
 
+                    var leng = $(array_memLoc[j]).children('input');
+                    var totalLen = $(array_memLoc[j]).children('input').length;
+
+                    $(array_memLoc).empty();
+                    console.log("orderLen: " + order.length);
+                    for (var j = 0; j < order.length; j++) {
+                        $(array_memLoc).append("<input type='hidden' name='memLati' value='" + order[j].latitude + "'></input>");
+                        $(array_memLoc).append("<input type='hidden' name='memLong' value='" + order[j].longitude + "'></input>");
+                    }
+                    showMap(res.data.latitude, res.data.longitude, array_subPlaceLat, array_subPlaceLong, array_memLoc)
                 })
         }
 

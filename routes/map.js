@@ -259,7 +259,7 @@ router.post('/', async (req, res, next) => {
                 raw: true
             }).then(el => {
                 if (el != null) {
-                    
+
                     let tol = el.direct.split(',');
                     for (let i = 0; i < tol.length; i += 2) {
                         finalDir.push({ latitude: tol[i], longitude: tol[i + 1] });
@@ -267,7 +267,7 @@ router.post('/', async (req, res, next) => {
                 }
             });
         }
-  
+
         console.log("findDir : ");
         console.log(finalDir);
 
@@ -343,9 +343,11 @@ router.post('/', async (req, res, next) => {
         if (web == 'yes')
             //웹에서 요청하는 경우
             res.render('map', { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, order: finalDir, avgTime: avgTime });
+        else if (web == 'axios')
+            res.json({ place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, order: finalDir, avgTime: avgTime });
         else
             //앱에서 요청하는 경우
-            res.send({ place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, order: finalDir, avgTime: avgTime });
+            return res.status(200).json({ place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, order: finalDir, avgTime: avgTime });
 
     } catch (err) {
         console.error(err);
