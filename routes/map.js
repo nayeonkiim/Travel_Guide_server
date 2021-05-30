@@ -288,6 +288,7 @@ router.post('/', async (req, res, next) => {
         for (let i = 0; i < subPlace.length; i++) {
             vist.name = subPlace[i].name;
             vist.cnt = 0;
+            timeArr[subPlace[i].name] = 0;
             timeArr.count = 0;
             for (let j = 0; j < mapUserId.length; j++) {
                 console.log(subPlace[i].name);
@@ -298,14 +299,14 @@ router.post('/', async (req, res, next) => {
                 });
 
                 if (times == undefined || times == null || times == 0) continue;
-                else {
-                    console.log(times);
-                    vist.cnt += 1;
-                    for (let k = 0; k < times.length; k++) {
-                        timeArr[subPlace[i].name] += times[k].total;
-                        timeArr.count += 1;
-                    }
+
+                console.log(times);
+                vist.cnt += 1;
+                for (let k = 0; k < times.length; k++) {
+                    timeArr[subPlace[i].name] += times[k].total;
+                    timeArr.count += 1;
                 }
+
             }
             visitArr.push(vist);
             totaltimeArr.push(timeArr);
