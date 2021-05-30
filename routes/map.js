@@ -231,7 +231,7 @@ router.post('/', async (req, res, next) => {
             }
             maxIdx = maxIdx.split(',');
             member = maxIdx.map(e => parseInt(e));
-            console.log(member);
+            //console.log(member);
         });
 
         //TourPlace와 연관된 TourSubPlace 의 위도,경도 값 가져오기
@@ -268,9 +268,6 @@ router.post('/', async (req, res, next) => {
             });
         }
 
-        console.log("findDir : ");
-        console.log(finalDir);
-
         let avgTime = [];
         //머문 시간 평균 구하기
 
@@ -284,13 +281,12 @@ router.post('/', async (req, res, next) => {
             }
         });
 
-        console.log("mapUserId : ");
-        console.log(mapUserId);
-
         let timeArr = [];
         let totaltimeArr = [];
+        let visitArr = [];
         for (let i = 0; i < subPlace.length; i++) {
             timeArr[subPlace[i].name] = 0;
+            visitArr[subPlace[i].name] = 0;
             timeArr.count = 0;
             for (let j = 0; j < mapUserId.length; j++) {
                 console.log(subPlace[i].name);
@@ -301,17 +297,20 @@ router.post('/', async (req, res, next) => {
                 });
 
                 if (times == undefined || times == null || times == 0) continue;
-                console.log(times);
-                for (let k = 0; k < times.length; k++) {
-                    timeArr[subPlace[i].name] += times[k].total;
-                    timeArr.count += 1;
+                else {
+                    console.log(times);
+                    visitArr[subPlace[i].name] += 1;
+                    for (let k = 0; k < times.length; k++) {
+                        timeArr[subPlace[i].name] += times[k].total;
+                        timeArr.count += 1;
+                    }
                 }
             }
             totaltimeArr.push(timeArr);
             timeArr = [];
         }
-        console.log(totaltimeArr);
-
+        console.log("visitArr: ");
+        console.log(visitArr);
 
         for (let i = 0; i < subPlace.length; i++) {
             //동일한 subPlace 시간 합산
@@ -336,7 +335,7 @@ router.post('/', async (req, res, next) => {
         if (totalMem.length == 0) totalMem = [];
         if (avgTime.length == 0) avgTime = [];
 
-        const sending = { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, order: finalDir, avgTime: avgTime };
+        const sending = { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, order: finalDir, avgTime: avgTime, visitArr: visitArr };
         console.log(sending);
 
         const web = req.body.web;
@@ -347,7 +346,7 @@ router.post('/', async (req, res, next) => {
             res.json({ place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, order: finalDir, avgTime: avgTime, first: "no" });
         else
             //앱에서 요청하는 경우
-            return res.status(200).json({ place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, order: finalDir, avgTime: avgTime });
+            return res.status(200).json({ place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, order: finalDir, avgTime: avgTime, visitArr: visitArr });
 
     } catch (err) {
         console.error(err);
@@ -392,7 +391,6 @@ router.post('/addPlace', async (req, res, next) => {
                 const result = await sub.setTourPlace(nearPlace[i], { transaction: t });
                 console.log('sub 정보 올바르게 저장 완료');
                 res.status(200).json({ approve: "ok_save_sub" });
-
             }
         });
     } catch (err) {
