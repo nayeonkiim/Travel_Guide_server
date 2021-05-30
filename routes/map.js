@@ -283,10 +283,11 @@ router.post('/', async (req, res, next) => {
 
         let timeArr = [];
         let totaltimeArr = [];
+        let vist = {};
         let visitArr = [];
         for (let i = 0; i < subPlace.length; i++) {
-            timeArr[subPlace[i].name] = 0;
-            visitArr[subPlace[i].name] = 0;
+            vist.name = subPlace[i].name;
+            vist.cnt = 0;
             timeArr.count = 0;
             for (let j = 0; j < mapUserId.length; j++) {
                 console.log(subPlace[i].name);
@@ -299,15 +300,17 @@ router.post('/', async (req, res, next) => {
                 if (times == undefined || times == null || times == 0) continue;
                 else {
                     console.log(times);
-                    visitArr[subPlace[i].name] += 1;
+                    vist.cnt += 1;
                     for (let k = 0; k < times.length; k++) {
                         timeArr[subPlace[i].name] += times[k].total;
                         timeArr.count += 1;
                     }
                 }
             }
+            visitArr.push(vist);
             totaltimeArr.push(timeArr);
             timeArr = [];
+            vist = {};
         }
         console.log("visitArr: ");
         console.log(visitArr);
@@ -346,7 +349,7 @@ router.post('/', async (req, res, next) => {
             res.json({ place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, order: finalDir, avgTime: avgTime, first: "no" });
         else
             //앱에서 요청하는 경우
-            return res.status(200).json({ place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, order: finalDir, avgTime: avgTime, visitArr: visitArr });
+            return res.status(200).json(sending);
 
     } catch (err) {
         console.error(err);
