@@ -47,7 +47,7 @@ function select(category) {
 }
 
 var width = 500;
-var height = 400;
+var height = 500;
 
 var color = d3.scale
     .linear()
@@ -58,6 +58,14 @@ var witdhScale = d3.scale
     .linear()
     .domain([0, 60])
     .range([0, width - 20]);
+
+var y = d3.scale.linear()
+    .domain([0, 6])
+    .range([height, 0])
+
+var x = d3.scale.linear()
+    .domain([0, 6])
+    .range([0, width])
 
 var axis = d3.svg.axis().scale(witdhScale);
 
@@ -86,6 +94,7 @@ function render(dataArr) {
         })
 
     canvas.data(dataArr)
+        .enter()
         .append("text")
 
     canvas.selectAll("text")
@@ -93,7 +102,12 @@ function render(dataArr) {
         .exit().remove()
 
     canvas.selectAll("text")
-        .attr("dy", ".35em")
+        .attr('x', function (d, i) {
+            return witdhScale(d.count) - 20 * i;
+        })
+        .attr('y', function (d, i) {
+            return -280 + i * 40
+        })
         .text(function (d) { return d.category });
 
     canvas.append("g").attr("transform", "translate(0, 300)").call(axis);
