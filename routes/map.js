@@ -10,6 +10,7 @@ const router = express.Router();
 const { Op } = require('sequelize');
 const { sequelize } = require('../models');
 const Direction = require('../models/direction');
+const commons = require('../lib/common');
 
 router.get('/', (req, res, next) => {
     //main.html로 이동
@@ -107,13 +108,12 @@ router.post('/monitor', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
     console.log('위치검색 라우터 호출됨');
     const place = req.body.place;
-    const gender = req.body.gender;
-    const age = req.body.age;
+    let gender = req.body.gender;
+    let age = req.body.age;
 
     console.log(req.body);
     //place 를 기준으로 관광지 테이블에서 해당 장소를 검색하고 중심좌표로 변경
     try {
-        let visit = true;
         //관광지 조회
         const result = await TourPlace.findOne({
             where: { name: place },
@@ -124,130 +124,10 @@ router.post('/', async (req, res, next) => {
         if (result == undefined)
             return res.status(200).json({ "approve": "ok", "message": "등록되지 않은 관광지 입니다." })
 
-        let member = [];
-        let totalMem = [];
-        let necessary = [];
+        let totalMem = await commons.getRoutes(result, gender, age);
 
+        console.log(totalMem);
         //입력한 관광지에 다녀간 user 모두 select
-        const findLoc = await Location.findAll({
-            include: [{
-                model: TourSubPlace,
-                where: { TourPlaceId: result.id },
-            }],
-            attribute: ['latitude', 'longitude', 'UserId'],
-            order: ['UserId', 'time', 'date'],
-        }).then(async el => {
-
-            if (gender == 'all' && age == 'all') {
-                necessary = el;
-                return necessary;
-            } else {
-                for (let t = 0; t < el.length; t++) {
-                    //해당 관광지에 갔던 user들을 찾아
-                    const addData = await User.findOne({
-                        where: { id: el[t].UserId },
-                        //attributes: ['id', 'gender', 'birth']
-                    });
-                    console.log(addData);
-
-                    //나이를 계산
-                    let calage = calAge(addData.birth.substr(0, 4));
-                    //둘 다 선택된 경우
-                    if (gender != 'all' && age != 'all') {
-                        if (calage >= parseInt(age) && calage < parseInt(age) + 10 && addData.gender == gender) {
-                            necessary.push(el[t]);
-                        }
-                    }
-                    //성별만 all 이 아닐때
-                    else if (gender != 'all') {
-                        let com = false;
-                        if (gender == 1)
-                            com = true
-
-                        if (addData.gender == com) {
-                            necessary.push(el[t]);
-                        }
-                    }
-                    //나이만 all 이 아닐때
-                    else if (age != 'all') {
-                        if (calage >= parseInt(age) && calage < parseInt(age) + 10) {
-                            necessary.push(el[t]);
-                        }
-                    }
-                }
-                return necessary;
-            }
-        }).then(async el => {
-            //해당 관광지에 사람들이 간 적이 없는 경우 (아직 데이터 없어)
-            if (el.length == 0)
-                visit = false;
-            else {
-                let curUser = el[0].dataValues.UserId;
-                let route = [];
-                let routeNum = [];
-                //아이디 별로 routeNum에 넣기
-                for (var index in el) {
-                    if (curUser == el[index].dataValues.UserId) {
-                        if (!routeNum.includes(el[index].dataValues.TourSubPlaces[0].dataValues.id))
-                            routeNum.push(el[index].dataValues.TourSubPlaces[0].dataValues.id);
-                    } else {
-                        route.push(routeNum);
-                        routeNum = [];
-                        curUser = el[index].dataValues.UserId;
-                        routeNum.push(el[index].dataValues.TourSubPlaces[0].dataValues.id);
-                    }
-                }
-                route.push(routeNum);
-                return route;
-            }
-
-        }).then(route => {
-            if (visit == false) {
-                return;
-            }
-
-            let routeMap = new Map();
-            for (let i = 0; i < route.length; i++) {
-                //map 에 경로가 key로 이미 있다면
-                if (!routeMap.has("" + route[i])) {
-                    routeMap.set("" + route[i], 1);
-                } else
-                    //경로 없을 경우 새로 생성
-                    routeMap.set("" + route[i], routeMap.get("" + route[i]) + 1);
-            }
-
-            let max = 0;
-            const iterator1 = routeMap.values();
-            const iterator2 = routeMap.keys();
-
-            //가장 많이 간 경로(key) 찾기
-            for (let i = 0; i < routeMap.size; i++) {
-                let nextVal = iterator1.next().value;
-                let nextKey = iterator2.next().value;
-                if (max < nextVal) {
-                    max = nextVal;
-                    maxIdx = nextKey;
-                }
-            }
-            maxIdx = maxIdx.split(',');
-            member = maxIdx.map(e => parseInt(e));
-            //console.log(member);
-        });
-
-        //TourPlace와 연관된 TourSubPlace 의 위도,경도 값 가져오기
-        let subPlace = await TourSubPlace.findAll({
-            where: { TourPlaceId: result.id },
-            attributes: ['id', 'latitude', 'longitude', 'name'],
-        });
-
-        subPlace.map(e => {
-            for (let i = 0; i < member.length; i++) {
-                //가장 많이 간 경로 순서대로 위도경도 값 넣어주기
-                if (e.id == member[i]) {
-                    totalMem.push({ id: e.id, name: e.name, latitude: e.latitude, longitude: e.longitude });
-                }
-            }
-        });
 
         const subPlaceIds = totalMem.map(e => e.id);
         let finalDir = [];
@@ -272,6 +152,7 @@ router.post('/', async (req, res, next) => {
         //머문 시간 평균 구하기
 
         var k = 0;
+        let necessary = await commons.getLocation(result, gender, age);
         let mapUserId = necessary.map(ne => ne.UserId);
         console.log(mapUserId);
         mapUserId = mapUserId.filter(ne => {
@@ -285,6 +166,13 @@ router.post('/', async (req, res, next) => {
         let totaltimeArr = [];
         let vist = {};
         let visitArr = [];
+
+        //TourPlace와 연관된 TourSubPlace 의 위도,경도 값 가져오기
+        let subPlace = await TourSubPlace.findAll({
+            where: { TourPlaceId: result.id },
+            attributes: ['id', 'latitude', 'longitude', 'name'],
+        });
+
         for (let i = 0; i < subPlace.length; i++) {
             vist.name = subPlace[i].name;
             vist.cnt = 0;
@@ -442,19 +330,193 @@ router.post('/ages', async (req, res, next) => {
             raw: true
         });
 
-        let final = calAge(getAge.birth.substr(0, 4));
+        let final = commons.calAge(getAge.birth.substr(0, 4));
         data.push({ 'subPlace': subPlace, 'age': final, 'gender': getAge.gender });
     }
     console.log(data);
     res.json(data);
 });
 
-function calAge(age) {
-    const now = new Date();	// 현재 날짜 및 시간
-    const year = now.getFullYear();	// 연도
-    const realAge = parseInt(year) - parseInt(age) + 1;
-    const final = realAge / 10 * 10;
-    return final;
+
+router.post('/prac', async (req, res, next) => {
+    console.log('위치검색 라우터 호출됨');
+    const place = req.body.place;
+    let gender = req.body.gender;
+    let age = req.body.age;
+
+    //gender, age가 여러개 들어올 수 있어 ,로 구분
+    if (gender.length > 1)
+        gender = gender.split(",");  //0,1
+    if (age.length > 1)
+        age = age.split(",");  //20,30
+    console.log(gender + ", " + age);
+
+    console.log(req.body);
+    //place 를 기준으로 관광지 테이블에서 해당 장소를 검색하고 중심좌표로 변경
+    try {
+        //관광지 조회
+        const result = await TourPlace.findOne({
+            where: { name: place },
+            raw: true
+        });
+        console.log(result);
+        //등록되지 않은 관광지 메시지 보내주기
+        if (result == undefined)
+            return res.status(200).json({ "approve": "ok", "message": "등록되지 않은 관광지 입니다." })
+
+        let totalMem = [];
+        for (i in age) {
+            for (j in gender) {
+                let eachUser = await commons.getRoutes(result, gender[j], age[i])
+                if (eachUser == undefined) eachUser = [];
+                eachUser.push({ age: age[i], gender: gender[j] });
+                totalMem.push(eachUser);
+            }
+        }
+
+        console.log(totalMem);
+        let totalFinalDir = [];
+        for (i in totalMem) {
+            const subPlaceIds = totalMem[i].map(e => e.id);
+            let finalDir = [];
+            for (let i = 0; i < subPlaceIds.length - 2; i++) {
+                await Direction.findOne({
+                    where: { seq: subPlaceIds[i] + "," + subPlaceIds[i + 1] },
+                    attribute: ['direct'],
+                    raw: true
+                }).then(el => {
+                    if (el != null) {
+                        let tol = el.direct.split(',');
+                        for (let i = 0; i < tol.length; i += 2) {
+                            finalDir.push({ latitude: tol[i], longitude: tol[i + 1] });
+                        }
+                    } else {
+                        finalDir.push({});
+                    }
+                });
+            }
+            totalFinalDir.push(finalDir);
+        }
+
+        let avgTime = [];
+        //머문 시간 평균 구하기
+
+        var k = 0;
+        let necessary = await commons.getLocation(result, gender, age);
+        let mapUserId = necessary.map(ne => ne.UserId);
+        console.log(mapUserId);
+        mapUserId = mapUserId.filter(ne => {
+            if (ne != k) {
+                k = ne;
+                return ne;
+            }
+        });
+
+        let timeArr = [];
+        let totaltimeArr = [];
+        let vist = {};
+        let visitArr = [];
+
+        //TourPlace와 연관된 TourSubPlace 의 위도,경도 값 가져오기
+        let subPlace = await TourSubPlace.findAll({
+            where: { TourPlaceId: result.id },
+            attributes: ['id', 'latitude', 'longitude', 'name'],
+        });
+
+        for (let i = 0; i < subPlace.length; i++) {
+            vist.name = subPlace[i].name;
+            vist.cnt = 0;
+            timeArr[subPlace[i].name] = 0;
+            timeArr.count = 0;
+            for (let j = 0; j < mapUserId.length; j++) {
+                console.log(subPlace[i].name);
+                //한명의 user가 관광지 별로 머문 시간
+                const times = await Time.findAll({
+                    where: { TourSubPlaceId: subPlace[i].id, UserId: mapUserId[j] },
+                    raw: true
+                });
+
+                if (times == undefined || times == null || times == 0) continue;
+
+                console.log(times);
+                vist.cnt += 1;
+                for (let k = 0; k < times.length; k++) {
+                    timeArr[subPlace[i].name] += times[k].total;
+                    timeArr.count += 1;
+                }
+
+            }
+            visitArr.push(vist);
+            totaltimeArr.push(timeArr);
+            timeArr = [];
+            vist = {};
+        }
+        console.log("visitArr: ");
+        console.log(visitArr);
+
+        for (let i = 0; i < subPlace.length; i++) {
+            //동일한 subPlace 시간 합산
+            let totalTime = totaltimeArr[i][subPlace[i].name];
+            console.log(totalTime);
+            let totalCount = totaltimeArr[i].count;
+            console.log(totalCount);
+
+            let avg = parseInt(totalTime / totalCount);
+            console.log("avg: " + avg);
+
+            if (isNaN(avg)) avg = 0;
+            var time = Math.floor((avg % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            var min = Math.floor((avg % (1000 * 60 * 60)) / (1000 * 60));
+            var sec = Math.floor((avg % (1000 * 60)) / 1000);
+            avgTime.push({ 'name': subPlace[i].name, 'avg': time + "시간 " + min + "분 " + sec + "초" });
+        }
+
+
+        //가보지 않은 관광지인 경우 모두 null로 보냄
+        if (subPlace.length == 0) subPlace = [];
+        if (totalMem.length == 0) totalMem = [];
+        if (avgTime.length == 0) avgTime = [];
+
+        const sending = { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, order: totalFinalDir, avgTime: avgTime, visitArr: visitArr };
+        console.log(sending);
+
+        const web = req.body.web;
+        if (web == 'yes')
+            //웹에서 요청하는 경우
+            res.render('map', { place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, order: totalFinalDir, avgTime: avgTime, first: "first" });
+        else if (web == 'axios')
+            res.json({ place: place, latitude: result.latitude, longitude: result.longitude, subPlace: subPlace, totalMem: totalMem, order: finalDir, avgTime: avgTime, first: "no" });
+        else
+            //앱에서 요청하는 경우
+            return res.status(200).json(sending);
+
+
+    } catch (err) {
+        console.error(err);
+        next();
+    }
+});
+
+//age 별로, gender 별로 sort
+function sortAgeAndGender(usersData, age, gender) {
+    let ageAndGen = [];
+
+    for (i in age) {
+        let agen = { age: 0, gender: 0, user: '', data: '' };
+        for (j in gender) {
+            agen.age = age[i];
+            agen.gender = gender[j];
+            ageAndGen.push(agen);
+        }
+    }
+    usersData.forEach(el => {
+        for (i in ageAndGen) {
+            if (el.age == ageAndGen[i].age && el.gender == Number(ageAndGen[i].gender)) {
+                ageAndGen[i].user += el.user + ',';
+            }
+        }
+    });
+    return ageAndGen;
 }
 
 module.exports = router;
