@@ -43,11 +43,15 @@ router.post('/', async (req, res, next) => {
 
         if (latest != null) {
             //바로 이전 위도경도와 현재 위치와 차이가 많이 나면 현재위치 조정
-            if (latest.latitude - latitude > 0.0002 && latest.longitude - longitude > 0.0002) {
+            if (latest.latitude - latitude > 0.0002) {
                 latitude += 0.0001;
-                longitude += 0.0001;
-            } else if (latitude - latest.latitude > 0.0002 && longitude - latest.longitude > 0.0002) {
+            } else if (latitude - latest.latitude > 0.0002) {
                 latitude -= 0.0001;
+            }
+            
+            if (latest.longitude - longitude > 0.0002) {
+                longitude += 0.0001;
+            } else if (longitude - latest.longitude > 0.0002) {
                 longitude -= 0.0001;
             }
         }
