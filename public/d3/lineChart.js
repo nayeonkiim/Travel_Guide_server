@@ -44,7 +44,8 @@ function lineChart() {
     function renderXAxis(axesG) {
         var xAxis = d3.svg.axis()
             .scale(_x.range([0, quadrantWidth()]))
-            .orient("bottom");  //축의 위치
+            .orient("bottom")  //축의 위치
+            .ticks(6);
 
         axesG.append("g")
             .attr("class", "x axis")
@@ -65,7 +66,8 @@ function lineChart() {
     function renderYAxis(axesG) {
         var yAxis = d3.svg.axis()
             .scale(_y.range([quadrantHeight(), 0]))
-            .orient("left");
+            .orient("left")
+            .ticks(10);
 
         axesG.append("g")
             .attr("class", "y axis")
@@ -97,7 +99,7 @@ function lineChart() {
     }
 
     function renderBody(svg) {
-        if (!_bodyG)
+        if (!_bodyG) {
             _bodyG = svg.append("g")
                 .attr("class", "body")
                 .attr("transform", "translate("
@@ -105,6 +107,28 @@ function lineChart() {
                     + yEnd() + ")")
                 .attr("clip-path", "url(#body-clip)");
 
+            var series = ["남자", "여자"];
+            var legend = svg.append("g")
+                .attr("text-anchor", "end")
+                .selectAll("g")
+                .data(series)
+                .enter().append("g")
+                .attr("transform", function (d, i) { return "translate(0," + i * 20 + ")"; });
+
+            legend.append("rect")
+                .attr("x", width - 20)
+                .attr("width", 19)
+                .attr("height", 19)
+                .attr("fill", function (d, i) {
+                    return _colors(i); //<-4C, 이것의 인덱스에 기반을 두는 각 데이터 라인에 대해 다른 색상 설정
+                });
+
+            legend.append("text")
+                .attr("x", width - 30)
+                .attr("y", 9.5)
+                .attr("dy", "0.32em")
+                .text(function (d) { return d; });
+        }
         renderLines();
 
         renderDots();
