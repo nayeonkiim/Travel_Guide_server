@@ -32,4 +32,4 @@ npm start
 <img width="300px" height="500px" src="https://user-images.githubusercontent.com/61819669/120889586-db05f100-c638-11eb-8692-555eca26aeee.gif">
 
 ## database
-<img width="80%" src="https://user-images.githubusercontent.com/61819669/120889382-bbba9400-c637-11eb-9eed-aac644ccc5e9.png">
+<img width="80%" src="https://user-images.githubusercontent.com/61819669/120889664-37691080-c639-11eb-888e-b6c1584cf399.jpg">
