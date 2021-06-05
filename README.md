@@ -29,7 +29,7 @@ npm start
 * 웹을 통한 성별,연령별 많이 간 경로
 <img width="80%" src="https://user-images.githubusercontent.com/61819669/120888553-c96e1a80-c633-11eb-81a5-64f7e491b40a.gif">
 * 앱을 통한 성별,연령별 많이 간 경로
-<img width="80%" src="https://user-images.githubusercontent.com/61819669/120888724-eb1bd180-c634-11eb-983e-df34f65da7fa.mp4">
+<img width="80%" src="https://user-images.githubusercontent.com/61819669/120888811-59f92a80-c635-11eb-8329-0439254d7abc.gif">
 
 ## database
 <img width="80%" src="https://user-images.githubusercontent.com/61819669/120889382-bbba9400-c637-11eb-9eed-aac644ccc5e9.png">
