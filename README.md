@@ -27,9 +27,9 @@ npm start
 
 ## 서비스 소개 및 시연
 * 웹을 통한 성별,연령별 많이 간 경로
-<img width="80%" src="https://user-images.githubusercontent.com/61819669/120888553-c96e1a80-c633-11eb-81a5-64f7e491b40a.gif">
+<img width="80%" src="https://user-images.githubusercontent.com/61819669/120888553-c96e1a80-c633-11eb-81a5-64f7e491b40a.gif"><br/>
 * 앱을 통한 성별,연령별 많이 간 경로
-<img width="80%" src="https://user-images.githubusercontent.com/61819669/120888811-59f92a80-c635-11eb-8329-0439254d7abc.gif">
+<img width="80%" src="https://user-images.githubusercontent.com/61819669/120889469-53b87d80-c638-11eb-9528-c60ed60364c8.gif">
 
 ## database
 <img width="80%" src="https://user-images.githubusercontent.com/61819669/120889382-bbba9400-c637-11eb-9eed-aac644ccc5e9.png">
