@@ -1,6 +1,6 @@
 # Travel_Guide_server
 패키지 여행 시, 자유시간 동안 <br/>
-앱으로 미아 방지를 위한 그룹원 위치 조회 기능 <br/>
+앱으로 길 잃음 방지를 위한 그룹원 위치 조회 기능 <br/>
 웹에서 가이드에게 쌓인 위치 데이터 분석 정보를 제공합니다.
 
 
@@ -26,6 +26,10 @@ npm start
 ## 폴더 구조
 
 ## 서비스 소개 및 시연
+* 웹을 통한 성별,연령별 많이 간 경로
+<img width="80%" src="https://user-images.githubusercontent.com/61819669/120888553-c96e1a80-c633-11eb-81a5-64f7e491b40a.gif">
+* 앱을 통한 성별,연령별 많이 간 경로
+<img width="80%" src="https://user-images.githubusercontent.com/61819669/120888724-eb1bd180-c634-11eb-983e-df34f65da7fa.mp4">
 
 ## database
 
