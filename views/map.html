@@ -54,6 +54,12 @@
                 <p>{{avg.name}} {{avg.avg}}</p>
                 {% endfor %}
             </div>
+            <div>
+                <form method="post" action="/map/monitor">
+                    <input type="hidden" name="place" value={{place}}>
+                    <input type="submit" value="전체 여행원들 이동경로 보기">
+                </form>
+            </div>
         </div>
     </div>
     <div class="map_right_wrap">
