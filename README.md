@@ -26,8 +26,8 @@ npm start
 ## 폴더 구조
 
 ## 서비스 소개 및 시연
-* 웹을 통한 성별,연령별 많이 간 경로
-<img width="80%" src="https://user-images.githubusercontent.com/61819669/120888553-c96e1a80-c633-11eb-81a5-64f7e491b40a.gif"><br/>
+* 웹을 통한 성별,연령별 많이 간 경로 및 전체 모니터링
+<img width="80%" src="https://user-images.githubusercontent.com/61819669/120916444-a0f22900-c6e4-11eb-8581-68167e4d73c0.gif"><br/>
 * 앱을 통한 성별,연령별 많이 간 경로
 <img width="300px" height="500px" src="https://user-images.githubusercontent.com/61819669/120889586-db05f100-c638-11eb-8692-555eca26aeee.gif">
 
