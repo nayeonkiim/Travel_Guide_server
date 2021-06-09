@@ -124,7 +124,8 @@ router.post('/', async (req, res, next) => {
         if (result == undefined)
             return res.status(200).json({ "approve": "ok", "message": "등록되지 않은 관광지 입니다." })
 
-        let totalMem = await commons.getRoutes(result, gender, age);
+        let necessary = await commons.getLocation(result, gender, age);
+        let totalMem = await commons.getRoutes(necessary, result, gender, age);
 
         console.log(totalMem);
         //입력한 관광지에 다녀간 user 모두 select
@@ -154,7 +155,7 @@ router.post('/', async (req, res, next) => {
         //머문 시간 평균 구하기
 
         var k = 0;
-        let necessary = await commons.getLocation(result, gender, age);
+
         let mapUserId = necessary.map(ne => ne.UserId);
         console.log(mapUserId);
         mapUserId = mapUserId.filter(ne => {
