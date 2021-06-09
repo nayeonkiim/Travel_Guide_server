@@ -14,20 +14,20 @@ function select(category) {
         .then((res) => {
             console.log("dataArr: " + dataArr);
             for (let i = 0; i < res.data.length; i++) {
-                console.log(res.data[i].age);
-                if (res.data[i].age >= 20 && res.data[i].age < 30) {
+                const givenAge = parseInt(res.data[i].age);
+                if (givenAge >= 20 && givenAge < 30) {
                     dataArr[0].count += 1;
                     dataArr[0].category = "20대";
-                } else if (res.data[i].age >= 30 && res.data[i].age < 40) {
+                } else if (givenAge >= 30 && givenAge < 40) {
                     dataArr[1].count += 1;
                     dataArr[1].category = "30대"
-                } else if (res.data[i].age >= 40 && res.data[i].age < 50) {
+                } else if (givenAge >= 40 && givenAge < 50) {
                     dataArr[2].count += 1;
                     dataArr[2].category = "40대";
-                } else if (res.data[i].age >= 50 && res.data[i].age < 60) {
+                } else if (givenAge >= 50 && givenAge < 60) {
                     dataArr[3].count += 1;
                     dataArr[3].category = "50대";
-                } else if (res.data[i].age >= 60 && res.data[i].age < 70) {
+                } else if (givenAge >= 60 && givenAge < 70) {
                     dataArr[4].count += 1;
                     dataArr[4].category = "60대";
                 } else {
@@ -56,8 +56,8 @@ var color = d3.scale
 
 var witdhScale = d3.scale
     .linear()
-    .domain([0, 60])
-    .range([0, width - 20]);
+    .domain([0, 10])
+    .range([0, width]);
 
 var y = d3.scale.linear()
     .domain([0, 6])
@@ -106,7 +106,7 @@ function render(dataArr) {
             return witdhScale(d.count) - 20 * i;
         })
         .attr('y', function (d, i) {
-            return -280 + i * 40
+            return -280 + i * 60
         })
         .text(function (d) { return d.category });
 
