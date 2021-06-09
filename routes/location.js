@@ -19,8 +19,8 @@ router.post('/', async (req, res, next) => {
     const date = req.body.date;
     const time = req.body.time;
     const userId = req.body.userId;
-    const latitude = parseFloat(req.body.latitude);
-    const longitude = parseFloat(req.body.longitude);
+    let latitude = parseFloat(req.body.latitude);
+    let longitude = parseFloat(req.body.longitude);
 
     console.log(req.body);
     let approve = { "approve": "ok" };
@@ -41,17 +41,17 @@ router.post('/', async (req, res, next) => {
         });
         console.log(latest);
 
-        if (latest != null) {
+        if (lastest != undefined || lastest != null) {
             //바로 이전 위도경도와 현재 위치와 차이가 많이 나면 현재위치 조정
-            if (latest.latitude - latitude > 0.0002) {
+            if (lastest.latitude - latitude > 0.0002) {
                 latitude += 0.0001;
-            } else if (latitude - latest.latitude > 0.0002) {
+            } else if (latitude - lastest.latitude > 0.0002) {
                 latitude -= 0.0001;
             }
             
-            if (latest.longitude - longitude > 0.0002) {
+            if (lastest.longitude - longitude > 0.0002) {
                 longitude += 0.0001;
-            } else if (longitude - latest.longitude > 0.0002) {
+            } else if (longitude - lastest.longitude > 0.0002) {
                 longitude -= 0.0001;
             }
         }
