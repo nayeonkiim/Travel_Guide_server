@@ -1,4 +1,5 @@
 # Travel_Guide_server
+demo video : https://youtu.be/GkL0ngKyvGg <br/><br/>
 패키지 여행 시, 자유시간 동안 <br/>
 앱으로 길 잃음 방지를 위한 그룹원 위치 조회 기능 <br/>
 웹에서 가이드에게 쌓인 위치 데이터 분석 정보를 제공합니다.
