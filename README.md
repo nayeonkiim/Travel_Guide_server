@@ -23,8 +23,6 @@ npm start
   * 막대 차트, 선 차트, 표
 * kakao map api
 
-## 폴더 구조
-
 ## 서비스 소개 및 시연
 * 웹을 통한 성별,연령별 많이 간 경로 및 전체 모니터링
 <img width="90%" src="https://user-images.githubusercontent.com/61819669/121356198-9b5a4480-c96b-11eb-981e-dab5c8bb1b5b.gif"><br/>
@@ -33,3 +31,6 @@ npm start
 
 ## database
 <img width="80%" src="https://user-images.githubusercontent.com/61819669/120889664-37691080-c639-11eb-888e-b6c1584cf399.jpg">
+
+## Client Android
+[Travel_Guide_Client](https://github.com/HyeRim-Choi/Travel_Guide_Client)
